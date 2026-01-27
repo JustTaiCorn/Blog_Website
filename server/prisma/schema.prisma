@@ -1,0 +1,287 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+enum UserRole {
+  USER
+  ADMIN
+  OWNER
+}
+
+enum LikeType {
+  UP
+  DOWN
+}
+
+enum NotificationType {
+  like
+  comment
+  reply
+}
+model User {
+  id                 Int       @id @default(autoincrement())
+  username           String    @unique @db.VarChar(128)
+  email              String    @unique @db.VarChar(128)
+  password           String    @db.VarChar(255)
+  fullname           String    @db.VarChar(255)
+  bio                String    @default("") @db.Text
+  profile_img        String?   @db.Text
+  profile_img_id     String?   @db.Text
+  verified           Boolean   @default(false)
+  verification_token String?
+  verification_token_expires_at DateTime?
+  google_auth        Boolean   @default(false)
+  deleted            Boolean   @default(false)
+  total_posts        Int       @default(0)
+  total_reads        BigInt    @default(0)
+  created_at         DateTime  @default(now()) @db.Timestamptz
+  updated_at         DateTime  @updatedAt @db.Timestamptz
+
+  // Relations
+  roles              UserRoleEntry[]
+  social_links       UserSocialLinks?
+  blogs              Blog[]
+  comments           Comment[]
+  blogLikes          BlogLike[]
+  commentLikes       CommentLike[]
+  notificationsAsReceiver Notification[] @relation("NotificationReceiver")
+  notificationsAsActor    Notification[] @relation("NotificationActor")
+  blogAuthorComments Comment[] @relation("BlogAuthorComments")
+  passwordResetTokens PasswordResetToken[]
+  sessions           Session[]
+
+  @@index([username])
+  @@index([email])
+  @@index([verification_token])
+  @@index([deleted])
+}
+
+model UserRoleEntry {
+  user_id   Int
+  role      UserRole @default(USER)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role])
+}
+
+model UserSocialLinks {
+  user_id    Int      @unique
+  youtube    String   @default("")
+  instagram  String   @default("")
+  facebook   String   @default("")
+  twitter    String   @default("")
+  github     String   @default("")
+  website    String   @default("")
+  updated_at DateTime @default(now()) @db.Timestamptz
+
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id])
+}
+
+model Category {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(64)
+  slug       String   @unique @db.VarChar(64)
+  details    String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  blogs      Blog[]
+
+  @@index([name])
+  @@index([slug])
+}
+
+model Tag {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(64)
+  slug       String   @unique @db.VarChar(64)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  blogs      BlogTag[]
+
+  @@index([name])
+  @@index([slug])
+}
+
+model Blog {
+  id                            Int       @id @default(autoincrement())
+  blog_id                       String    @unique @db.VarChar(64) // custom short ID
+  title                         String    @db.VarChar(255)
+  slug                          String    @unique @db.VarChar(255)
+  banner                        String?   @db.Text
+  des                           String?   @db.VarChar(200)
+  content                       Json      @db.JsonB
+
+  author_id                     Int
+  category_id                   Int?
+
+  draft                         Boolean   @default(true)
+  published                     Boolean   @default(false)
+  published_at                  DateTime? @db.Timestamptz
+
+  activity_total_likes          Int       @default(0)
+  activity_total_comments       Int       @default(0)
+  activity_total_reads          BigInt    @default(0)
+  activity_total_parent_comments Int      @default(0)
+
+  created_at                    DateTime  @default(now()) @db.Timestamptz
+  updated_at                    DateTime  @updatedAt @db.Timestamptz
+
+  // Relations
+  author                        User      @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  category                      Category? @relation(fields: [category_id], references: [id])
+  tags                          BlogTag[]
+  comments                      Comment[]
+  likes                         BlogLike[]
+  notifications                 Notification[]
+
+  @@index([blog_id])
+  @@index([slug])
+  @@index([author_id])
+  @@index([published])
+  @@index([published_at])
+  @@index([author_id, published_at])
+}
+
+model BlogTag {
+  blog_id Int
+  tag_id  Int
+
+  blog    Blog @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  tag     Tag  @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@id([blog_id, tag_id])
+  @@index([tag_id])
+}
+
+model Comment {
+  id               Int       @id @default(autoincrement())
+  blog_id          Int
+  blog_author_id   Int
+  comment          String    @db.Text
+  commented_by     Int
+
+  parent_id        Int?
+  is_reply         Boolean   @default(false)
+
+  active           Boolean   @default(true)
+
+  commented_at     DateTime  @default(now()) @db.Timestamptz
+  updated_at       DateTime  @updatedAt @db.Timestamptz
+
+  // Relations
+  blog             Blog      @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  blogAuthor       User      @relation("BlogAuthorComments", fields: [blog_author_id], references: [id])
+  commenter        User      @relation(fields: [commented_by], references: [id], onDelete: Cascade)
+  parent           Comment?  @relation("CommentReplies", fields: [parent_id], references: [id])
+  replies          Comment[] @relation("CommentReplies")
+  likes            CommentLike[]
+  notificationsAsComment Notification[] @relation("NotificationComment")
+  notificationsAsReply   Notification[] @relation("NotificationReply")
+  notificationsAsRepliedOn Notification[] @relation("NotificationRepliedOn")
+
+  @@index([blog_id])
+  @@index([commented_by])
+  @@index([parent_id])
+  @@index([blog_id, commented_at])
+  @@index([active])
+}
+
+model BlogLike {
+  user_id    Int
+  blog_id    Int
+  type       LikeType  @default(UP)
+  created_at DateTime  @default(now()) @db.Timestamptz
+
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  blog       Blog      @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, blog_id])
+  @@index([blog_id])
+  @@index([created_at])
+}
+
+model CommentLike {
+  user_id    Int
+  comment_id Int
+  type       LikeType  @default(UP)
+  created_at DateTime  @default(now()) @db.Timestamptz
+
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comment    Comment   @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, comment_id])
+  @@index([comment_id])
+  @@index([created_at])
+}
+
+model Notification {
+  id                     Int              @id @default(autoincrement())
+  type                   NotificationType
+
+  blog_id                Int
+  notification_for       Int
+  user_id                Int
+
+  comment_id             Int?
+  reply_id               Int?
+  replied_on_comment_id  Int?
+
+  seen                   Boolean          @default(false)
+
+  created_at             DateTime         @default(now()) @db.Timestamptz
+  updated_at             DateTime         @updatedAt @db.Timestamptz
+
+  // Relations
+  blog                   Blog             @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  receiver               User             @relation("NotificationReceiver", fields: [notification_for], references: [id], onDelete: Cascade)
+  actor                  User             @relation("NotificationActor", fields: [user_id], references: [id], onDelete: Cascade)
+
+  comment                Comment?         @relation("NotificationComment", fields: [comment_id], references: [id])
+  reply                  Comment?         @relation("NotificationReply", fields: [reply_id], references: [id])
+  repliedOnComment       Comment?         @relation("NotificationRepliedOn", fields: [replied_on_comment_id], references: [id])
+
+  @@index([notification_for])
+  @@index([user_id])
+  @@index([seen])
+  @@index([notification_for, created_at])
+  @@index([blog_id, type])
+}
+
+model PasswordResetToken {
+  id         Int       @id @default(autoincrement())
+  token      String    @unique @db.Uuid
+  user_id    Int
+  expires_at DateTime  @db.Timestamptz
+  used       Boolean   @default(false)
+  created_at DateTime  @default(now()) @db.Timestamptz
+
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([user_id])
+  @@index([used])
+}
+
+model Session {
+  id            Int       @id @default(autoincrement())
+  refresh_token String    @unique @db.Text
+  user_id       Int
+  expires_at    DateTime  @db.Timestamptz
+  revoked_at    DateTime? @db.Timestamptz
+  created_at    DateTime  @default(now()) @db.Timestamptz
+
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([refresh_token])
+  @@index([user_id])
+  @@index([expires_at])
+}

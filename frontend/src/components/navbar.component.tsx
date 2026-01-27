@@ -1,0 +1,156 @@
+import { useState } from "react";
+import {
+  Search,
+  Bell,
+  PenSquare,
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
+import logo from "@/imgs/logo.png";
+import { Link, useNavigate } from "react-router-dom";
+import SearchBar from "@/components/Search-bar.component.tsx";
+import { useAuthStore } from "@/stores/useAuthStore";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+const Navbar = () => {
+  const [searchBoxVisible, setSearchBoxVisible] = useState(false);
+  const navigate = useNavigate();
+
+  const { user, signOut } = useAuthStore();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  return (
+    <header className="bg-white sticky top-0 z-50 py-1 md:py-2 px-2 border-b border-gray-100">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Left side: Logo + Search */}
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-2xl font-bold flex-shrink-0">
+              <img src={logo} alt="logo" className="w-10 h-10 object-cover" />
+            </Link>
+            {/* Desktop Search */}
+            <SearchBar className="hidden md:block" />
+          </div>
+
+          {/* Right side: Write, Notification, User */}
+          <div className="flex items-center gap-2">
+            {/* Mobile Search Button */}
+            <button
+              className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={() => setSearchBoxVisible(!searchBoxVisible)}
+            >
+              <Search className="w-5 h-5 text-gray-600" />
+            </button>
+
+            {/* Write Button - Desktop */}
+            <Link
+              to="/editor"
+              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <PenSquare className="w-4 h-4" />
+              Write
+            </Link>
+
+            {/* Notification Button */}
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
+              <Bell className="w-5 h-5 text-gray-600" />
+            </button>
+            {user ? (
+              <>
+                {/* User Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-1 hover:bg-gray-100 rounded-full transition-colors focus:outline-none">
+                      <Avatar className="w-8 h-8 cursor-pointer">
+                        <AvatarImage
+                          src={user?.profile_img || undefined}
+                          alt={user?.username}
+                        />
+                        <AvatarFallback className="text-sm font-medium bg-gray-200">
+                          {user?.username?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/editor" className="flex items-center gap-2">
+                        <PenSquare className="w-4 h-4" />
+                        Write
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link
+                        to={`/user/${user?.username}`}
+                        className="flex items-center gap-2"
+                      >
+                        <User className="w-4 h-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/dashboard" className="flex items-center gap-2">
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/settings" className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer"
+                    >
+                      <div className="flex flex-col w-full">
+                        <div className="flex items-center gap-2 font-medium">
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <Link
+                to="/signin"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <User className="w-5 h-5 text-gray-600" />
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        {searchBoxVisible && (
+          <div className="md:hidden py-4 border-t bg-gray-50">
+            <SearchBar
+              isMobile={true}
+              onClose={() => setSearchBoxVisible(false)}
+            />
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
