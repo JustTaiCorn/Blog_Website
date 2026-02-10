@@ -101,3 +101,21 @@ export const optionalAuth = async (req, res, next) => {
     next();
   }
 };
+export const checkRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Người dùng chưa đăng nhập" });
+    }
+
+    const userRoles = req.user.roles.map((r) => r.role);
+    const hasRole = roles.some((role) => userRoles.includes(role));
+
+    if (!hasRole) {
+      return res.status(403).json({
+        message: "Bạn không có quyền thực hiện hành động này",
+      });
+    }
+
+    next();
+  };
+};

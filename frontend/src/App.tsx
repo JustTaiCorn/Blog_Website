@@ -9,7 +9,16 @@ import SignUpPage from "./pages/signup.page";
 import VerifyEmailPage from "./pages/verify-email.page";
 import HomePage from "@/pages/home.page.tsx";
 import ProtectedRoute from "@/components/auth/ProtectedRoute.tsx";
-import {EditorPages} from "@/pages/editor.pages.tsx";
+import { EditorPages } from "@/pages/editor.pages.tsx";
+import AdminRoute from "@/components/auth/AdminRoute.tsx";
+import AdminLayout from "@/components/layouts/AdminLayout.tsx";
+
+// Admin Pages
+import DashboardOverview from "@/pages/admin/DashboardOverview.tsx";
+import UserManagement from "@/pages/admin/UserManagement.tsx";
+import CategoryManagement from "@/pages/admin/CategoryManagement.tsx";
+import TagManagement from "@/pages/admin/TagManagement.tsx";
+import BlogManagement from "@/pages/admin/BlogManagement.tsx";
 // import ProfilePage from "./pages/profile.page";
 // import SearchPage from "./pages/search.page";
 // import BlogPage from "./pages/blog.page";
@@ -40,26 +49,25 @@ function App() {
 
       {/* Routes với Navbar */}
       <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
         {/*  <Route path="/search/:query" element={<SearchPage />} />*/}
         {/*  <Route path="/user/:id" element={<ProfilePage />} />*/}
         {/*  <Route path="/blog/:blog_id" element={<BlogPage />} />*/}
         {/*    */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/editor" element={<EditorPages />} />
-        {/*    <Route path="/editor/:blog_id" element={<EditorPage />} />*/}
-        {/*    <Route path="/dashboard" element={<DashboardPage />} />*/}
-        {/*    <Route path="/settings/edit-profile" element={<EditProfilePage />} />*/}
-        {/*    <Route*/}
-        {/*      path="/settings/change-password"*/}
-        {/*      element={<ChangePasswordPage />}*/}
-        {/*    />*/}
-        {/*    <Route path="/dashboard/blogs" element={<ManageBlogsPage />} />*/}
-        {/*    <Route*/}
-        {/*      path="/dashboard/notifications"*/}
-        {/*      element={<NotificationsPage />}*/}
-        {/*    />*/}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/editor" element={<EditorPages />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<DashboardOverview />} />
+            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/categories" element={<CategoryManagement />} />
+            <Route path="/admin/tags" element={<TagManagement />} />
+            <Route path="/admin/blogs" element={<BlogManagement />} />
           </Route>
+        </Route>
         {/*  <Route path="*" element={<NotFoundPage />} />*/}
       </Route>
     </Routes>

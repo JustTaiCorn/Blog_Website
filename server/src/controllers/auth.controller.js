@@ -38,7 +38,7 @@ export const signUp = async (req, res) => {
     // Tạo verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpiresAt = new Date(
-      Date.now() + VERIFICATION_TOKEN_TTL
+      Date.now() + VERIFICATION_TOKEN_TTL,
     );
 
     const user = await prisma.user.create({
@@ -125,11 +125,13 @@ export const signIn = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "Thiếu email hoặc password." });
     }
-
     const user = await prisma.user.findFirst({
       where: {
         email,
         deleted: false,
+      },
+      include: {
+        roles: true,
       },
     });
 
@@ -138,8 +140,6 @@ export const signIn = async (req, res) => {
         .status(401)
         .json({ message: "Email hoặc password không chính xác" });
     }
-
-    // Kiểm tra user đã xác thực email chưa
     if (!user.verified) {
       return res.status(403).json({
         message:
@@ -158,7 +158,7 @@ export const signIn = async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: ACCESS_TOKEN_TTL }
+      { expiresIn: ACCESS_TOKEN_TTL },
     );
 
     const refreshToken = crypto.randomBytes(64).toString("hex");
@@ -188,6 +188,7 @@ export const signIn = async (req, res) => {
         fullname: user.fullname,
         profile_img: user.profile_img,
         bio: user.bio,
+        roles: user.roles,
       },
     });
   } catch (error) {
@@ -245,7 +246,7 @@ export const refreshToken = async (req, res) => {
     const accessToken = jwt.sign(
       { userId: session.user_id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: ACCESS_TOKEN_TTL }
+      { expiresIn: ACCESS_TOKEN_TTL },
     );
 
     return res.status(200).json({ accessToken });
@@ -283,6 +284,9 @@ export const googleAuth = async (req, res) => {
 
     let user = await prisma.user.findFirst({
       where: { email, deleted: false },
+      include: {
+        roles: true,
+      },
     });
 
     if (user) {
@@ -314,7 +318,7 @@ export const googleAuth = async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user.id },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: ACCESS_TOKEN_TTL }
+      { expiresIn: ACCESS_TOKEN_TTL },
     );
 
     const refreshTokenValue = crypto.randomBytes(64).toString("hex");
@@ -344,6 +348,7 @@ export const googleAuth = async (req, res) => {
         fullname: user.fullname,
         profile_img: user.profile_img,
         bio: user.bio,
+        roles: user.roles,
       },
     });
   } catch (error) {

@@ -33,13 +33,21 @@ export function SignInForm({
   const onSubmit = async (data: SignInFormValues) => {
     const { email, password } = data;
     await signIn(email, password);
-    navigate("/");
+    if (useAuthStore.getState().isAdmin()) {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
   };
 
   const onGoogleSignIn = async () => {
     try {
       await googleSignIn();
-      navigate("/");
+      if (useAuthStore.getState().isAdmin()) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       // Error đã được handle trong store
       console.error(error);

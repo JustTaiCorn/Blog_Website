@@ -7,6 +7,10 @@ export const UserRole = {
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
+export interface UserRoleEntry {
+  role: UserRole;
+}
+
 export const LikeType = {
   UP: "UP",
   DOWN: "DOWN",
@@ -40,6 +44,7 @@ export interface User {
   total_reads: number;
   created_at: string;
   updated_at: string;
+  roles: UserRoleEntry[];
 }
 
 export interface UserSocialLinks {

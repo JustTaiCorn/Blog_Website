@@ -6,6 +6,7 @@ import * as blogController from "../controllers/blog.controller.js";
 const router = express.Router();
 
 // Public routes
+router.get("/", blogController.getAllBlogs);
 router.get("/:blog_id", blogController.getBlog);
 
 // Protected routes

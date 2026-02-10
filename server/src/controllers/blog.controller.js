@@ -1,6 +1,12 @@
 import { prisma } from "../lib/prisma.js";
 import { nanoid } from "nanoid";
 import { generateSlug } from "../utils/utils.js";
+import {
+  getCache,
+  setCache,
+  deleteCache,
+  deleteCacheByPattern,
+} from "../lib/redis.js";
 export const createBlog = async (req, res) => {
   try {
     const { title, content, banner, des, category_id, tags, draft } = req.body;
@@ -75,6 +81,8 @@ export const createBlog = async (req, res) => {
         : "Blog đã được đăng thành công",
       blog_id: blog.blog_id,
     });
+
+    await deleteCacheByPattern("blogs:list:*");
   } catch (error) {
     console.error("Error in createBlog:", error);
     res.status(500).json({ message: "Lỗi khi tạo blog", error: error.message });
@@ -124,6 +132,10 @@ export const updateBlog = async (req, res) => {
       message: "Cập nhật blog thành công",
       blog_id: updatedBlog.blog_id,
     });
+
+    // Invalidate blog caches
+    await deleteCache(`blogs:detail:${blog_id}`);
+    await deleteCacheByPattern("blogs:list:*");
   } catch (error) {
     console.error("Error in updateBlog:", error);
     res
@@ -155,6 +167,14 @@ export const uploadBanner = async (req, res) => {
 export const getBlog = async (req, res) => {
   try {
     const { blog_id } = req.params;
+    const cacheKey = `blogs:detail:${blog_id}`;
+
+    // Check cache
+    const cachedBlog = await getCache(cacheKey);
+    if (cachedBlog) {
+      return res.status(200).json({ blog: cachedBlog, fromCache: true });
+    }
+
     const blog = await prisma.blog.findUnique({
       where: { blog_id },
       include: {
@@ -177,9 +197,80 @@ export const getBlog = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy blog" });
     }
 
+    // Set cache
+    await setCache(cacheKey, blog);
+
     res.status(200).json({ blog });
   } catch (error) {
     console.error("Error in getBlog:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin blog" });
+  }
+};
+
+// Get All Blogs (Public)
+export const getAllBlogs = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, category } = req.query;
+    const cacheKey = `blogs:list:p${page}:l${limit}:c${category || "all"}`;
+
+    // Check cache
+    const cachedBlogs = await getCache(cacheKey);
+    if (cachedBlogs) {
+      return res.status(200).json({ ...cachedBlogs, fromCache: true });
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    const where = {
+      draft: false,
+      published: true,
+    };
+
+    if (category) {
+      where.category = { slug: category };
+    }
+
+    const [blogs, total] = await Promise.all([
+      prisma.blog.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              fullname: true,
+              username: true,
+              profile_img: true,
+            },
+          },
+          category: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+        orderBy: {
+          published_at: "desc",
+        },
+        skip,
+        take,
+      }),
+      prisma.blog.count({ where }),
+    ]);
+
+    const response = {
+      blogs,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / take),
+    };
+
+    // Set cache
+    await setCache(cacheKey, response);
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in getAllBlogs:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách blog" });
   }
 };

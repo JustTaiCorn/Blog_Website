@@ -17,6 +17,7 @@ export const authMe = async (req, res) => {
         total_posts: user.total_posts,
         total_reads: Number(user.total_reads),
         created_at: user.created_at,
+        roles: user.roles,
       },
     });
   } catch (error) {

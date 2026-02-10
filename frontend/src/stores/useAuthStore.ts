@@ -14,13 +14,14 @@ interface AuthState {
     username: string,
     password: string,
     email: string,
-    fullname: string
+    fullname: string,
   ) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
   fetchMe: () => Promise<void>;
   refresh: () => Promise<void>;
+  isAdmin: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -55,6 +56,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: true });
 
       const response = await authService.signIn(email, password);
+      console.log(response);
       get().setAccessToken(response.accessToken);
 
       await get().fetchMe();
@@ -137,5 +139,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } finally {
       set({ loading: false });
     }
+  },
+  isAdmin: () => {
+    const { user } = get();
+    if (!user || !user.roles) return false;
+    return user.roles.some((r) => r.role === "ADMIN");
   },
 }));
