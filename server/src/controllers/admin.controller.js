@@ -133,6 +133,27 @@ export const updateCategory = async (req, res) => {
 export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Check if category has blogs
+    const category = await prisma.category.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        _count: {
+          select: { blogs: true },
+        },
+      },
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Không tìm thấy danh mục" });
+    }
+
+    if (category._count.blogs > 0) {
+      return res.status(400).json({
+        message: `Không thể xóa danh mục này vì đang có ${category._count.blogs} bài viết sử dụng`,
+      });
+    }
+
     await prisma.category.delete({
       where: { id: parseInt(id) },
     });
@@ -198,6 +219,27 @@ export const updateTag = async (req, res) => {
 export const deleteTag = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Check if tag has blogs
+    const tag = await prisma.tag.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        _count: {
+          select: { blogs: true },
+        },
+      },
+    });
+
+    if (!tag) {
+      return res.status(404).json({ message: "Không tìm thấy tag" });
+    }
+
+    if (tag._count.blogs > 0) {
+      return res.status(400).json({
+        message: `Không thể xóa tag này vì đang có ${tag._count.blogs} bài viết sử dụng`,
+      });
+    }
+
     await prisma.tag.delete({
       where: { id: parseInt(id) },
     });

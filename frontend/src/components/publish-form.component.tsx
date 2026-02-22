@@ -4,7 +4,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useBlogEditorStore } from "@/stores/useBlogEditorStore";
-import { useCreateBlog } from "@/hooks/useBlogMutations";
+import { useCreateBlog } from "@/services/blogService";
 import AnimationWrapper from "@/common/page-animation";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";

@@ -8,6 +8,7 @@ import SignInPage from "./pages/signin.page";
 import SignUpPage from "./pages/signup.page";
 import VerifyEmailPage from "./pages/verify-email.page";
 import HomePage from "@/pages/home.page.tsx";
+import BlogPage from "@/pages/blog.page.tsx";
 import ProtectedRoute from "@/components/auth/ProtectedRoute.tsx";
 import { EditorPages } from "@/pages/editor.pages.tsx";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
@@ -50,9 +51,7 @@ function App() {
       {/* Routes với Navbar */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
-        {/*  <Route path="/search/:query" element={<SearchPage />} />*/}
-        {/*  <Route path="/user/:id" element={<ProfilePage />} />*/}
-        {/*  <Route path="/blog/:blog_id" element={<BlogPage />} />*/}
+        <Route path="/blog/:blog_id" element={<BlogPage />} />
         {/*    */}
         <Route element={<ProtectedRoute />}>
           <Route path="/editor" element={<EditorPages />} />

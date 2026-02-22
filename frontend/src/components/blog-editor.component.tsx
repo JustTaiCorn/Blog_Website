@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,21 @@ import { Input } from "./ui/input";
 import defaultimage from "../imgs/blog banner.png";
 import { Textarea } from "./ui/textarea";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { useUploadBanner, useCreateBlog } from "@/hooks/useBlogMutations";
+import {
+  useUploadBanner,
+  useCreateBlog,
+  useBlogCategories,
+  useBlogTags,
+} from "@/services/blogService";
 import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +39,8 @@ const blogSchema = z.object({
   content: z.any(),
   banner: z.string().nullable().optional(),
   bannerFile: z.instanceof(File).nullable().optional(),
+  category_id: z.string().optional(),
+  tags: z.array(z.string()).default([]),
 });
 
 type BlogFormValues = z.infer<typeof blogSchema>;
@@ -91,9 +106,14 @@ export const BlogEditorComponent = () => {
   const uploadBannerMutation = useUploadBanner();
   const createBlogMutation = useCreateBlog();
 
-  const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+  const { data: categories = [] } = useBlogCategories();
+  const { data: existingTags = [] } = useBlogTags();
 
-  const { register, handleSubmit, control, watch, setValue } =
+  const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState("");
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+
+  const { register, handleSubmit, control, watch, setValue, getValues } =
     useForm<BlogFormValues>({
       defaultValues: {
         title: "",
@@ -101,10 +121,46 @@ export const BlogEditorComponent = () => {
         banner: null,
         bannerFile: null,
         des: "",
+        category_id: "",
+        tags: [],
       },
     });
 
   const title = watch("title");
+  const selectedTags = watch("tags");
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addTag();
+    }
+  };
+
+  const addTag = (tagToAdd?: string) => {
+    const tag = tagToAdd || tagInput.trim();
+    if (!tag) return;
+
+    if (selectedTags.length >= 10) {
+      return; // Max 10 tags
+    }
+
+    if (!selectedTags.includes(tag)) {
+      setValue("tags", [...selectedTags, tag]);
+    }
+    setTagInput("");
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setValue(
+      "tags",
+      selectedTags.filter((tag) => tag !== tagToRemove),
+    );
+  };
 
   const onSubmit = async (values: BlogFormValues, isDraft: boolean) => {
     let finalBanner = values.banner;
@@ -122,6 +178,8 @@ export const BlogEditorComponent = () => {
           content: values.content,
           banner: finalBanner,
           des: values.des,
+          category_id: values.category_id ? parseInt(values.category_id) : null,
+          tags: values.tags,
           draft: isDraft,
         },
         {
@@ -198,6 +256,7 @@ export const BlogEditorComponent = () => {
             className="text-4xl font-medium w-full mt-8 h-auto min-h-[60px] outline-none resize-none px-0 border-none focus-visible:ring-0 placeholder:text-gray-300"
             {...register("title")}
             rows={1}
+            onKeyDown={handleKeyDown}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
               target.style.height = "auto";
@@ -210,7 +269,107 @@ export const BlogEditorComponent = () => {
             className="w-full h-24 resize-none leading-7 mt-4 outline-none border-none focus-visible:ring-0 placeholder:text-gray-300 font-gelasio text-lg"
             {...register("des")}
             maxLength={200}
+            onKeyDown={handleKeyDown}
           />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Controller
+                control={control}
+                name="category_id"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category: any) => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <div className="relative">
+                <Input
+                  placeholder="Add tags..."
+                  value={tagInput}
+                  onChange={(e) => {
+                    setTagInput(e.target.value);
+                    setShowTagSuggestions(true);
+                  }}
+                  onKeyDown={handleTagInputKeyDown}
+                  onFocus={() => setShowTagSuggestions(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowTagSuggestions(false), 200)
+                  }
+                  disabled={selectedTags.length >= 10}
+                />
+                {showTagSuggestions && tagInput && (
+                  <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                    {existingTags
+                      .filter(
+                        (tag: string) =>
+                          tag.toLowerCase().includes(tagInput.toLowerCase()) &&
+                          !selectedTags.includes(tag),
+                      )
+                      .map((tag: string) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                          onClick={() => {
+                            addTag(tag);
+                            setShowTagSuggestions(false);
+                          }}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    {!existingTags.some(
+                      (tag: string) =>
+                        tag.toLowerCase() === tagInput.toLowerCase(),
+                    ) && (
+                      <div className="px-3 py-2 text-sm text-gray-500 italic">
+                        New tag: "{tagInput}"
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedTags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-destructive focus:outline-none"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 text-right">
+                {selectedTags.length}/10 tags
+              </p>
+            </div>
+          </div>
 
           <div className="w-full my-6 h-[1px] bg-gray-100" />
 

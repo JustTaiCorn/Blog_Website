@@ -128,6 +128,33 @@ export const updateBlog = async (req, res) => {
       data: updatedData,
     });
 
+    // Update Tags
+    if (tags && Array.isArray(tags)) {
+      // 1. Delete existing BlogTags
+      await prisma.blogTag.deleteMany({
+        where: { blog_id: blog.id },
+      });
+
+      // 2. Add new BlogTags
+      for (const tagName of tags) {
+        let tag = await prisma.tag.findUnique({ where: { name: tagName } });
+        if (!tag) {
+          tag = await prisma.tag.create({
+            data: {
+              name: tagName,
+              slug: generateSlug(tagName),
+            },
+          });
+        }
+        await prisma.blogTag.create({
+          data: {
+            blog_id: blog.id,
+            tag_id: tag.id,
+          },
+        });
+      }
+    }
+
     res.status(200).json({
       message: "Cập nhật blog thành công",
       blog_id: updatedBlog.blog_id,
@@ -185,6 +212,7 @@ export const getBlog = async (req, res) => {
             profile_img: true,
           },
         },
+        category: true,
         tags: {
           include: {
             tag: true,
@@ -197,10 +225,16 @@ export const getBlog = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy blog" });
     }
 
-    // Set cache
-    await setCache(cacheKey, blog);
+    // Convert BigInt fields to Number for JSON serialization
+    const serializedBlog = {
+      ...blog,
+      activity_total_reads: Number(blog.activity_total_reads),
+    };
 
-    res.status(200).json({ blog });
+    // Set cache
+    await setCache(cacheKey, serializedBlog);
+
+    res.status(200).json({ blog: serializedBlog });
   } catch (error) {
     console.error("Error in getBlog:", error);
     res.status(500).json({ message: "Lỗi khi lấy thông tin blog" });
@@ -213,7 +247,6 @@ export const getAllBlogs = async (req, res) => {
     const { page = 1, limit = 10, category } = req.query;
     const cacheKey = `blogs:list:p${page}:l${limit}:c${category || "all"}`;
 
-    // Check cache
     const cachedBlogs = await getCache(cacheKey);
     if (cachedBlogs) {
       return res.status(200).json({ ...cachedBlogs, fromCache: true });
@@ -258,8 +291,14 @@ export const getAllBlogs = async (req, res) => {
       prisma.blog.count({ where }),
     ]);
 
+    // Convert BigInt fields to Number for JSON serialization
+    const serializedBlogs = blogs.map((blog) => ({
+      ...blog,
+      activity_total_reads: Number(blog.activity_total_reads),
+    }));
+
     const response = {
-      blogs,
+      blogs: serializedBlogs,
       total,
       page: parseInt(page),
       totalPages: Math.ceil(total / take),
@@ -271,6 +310,41 @@ export const getAllBlogs = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.error("Error in getAllBlogs:", error);
-    res.status(500).json({ message: "Lỗi khi lấy danh sách blog" });
+    res
+      .status(500)
+      .json({ message: "Lỗi khi lấy danh sách blog", error: error.message });
+  }
+};
+
+// Get Categories
+export const getCategories = async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    });
+    res.status(200).json({ categories });
+  } catch (error) {
+    console.error("Error in getCategories:", error);
+    res.status(500).json({ message: "Lỗi khi lấy danh mục" });
+  }
+};
+
+// Get Tags
+export const getTags = async (req, res) => {
+  try {
+    const tags = await prisma.tag.findMany({
+      select: {
+        name: true,
+      },
+    });
+    // Return array of strings for tags
+    res.status(200).json({ tags: tags.map((t) => t.name) });
+  } catch (error) {
+    console.error("Error in getTags:", error);
+    res.status(500).json({ message: "Lỗi khi lấy tags" });
   }
 };

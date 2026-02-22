@@ -38,7 +38,11 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Left side: Logo + Search */}
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-2xl font-bold flex-shrink-0">
+            <Link
+              to="/"
+              replace={false}
+              className="text-2xl font-bold flex-shrink-0"
+            >
               <img src={logo} alt="logo" className="w-10 h-10 object-cover" />
             </Link>
             {/* Desktop Search */}
@@ -101,12 +105,14 @@ const Navbar = () => {
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                      <Link to="/dashboard" className="flex items-center gap-2">
-                        <LayoutDashboard className="w-4 h-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
+                    {user.roles?.some((r) => r.role === "ADMIN") && (
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link to="/admin" className="flex items-center gap-2">
+                          <LayoutDashboard className="w-4 h-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link to="/settings" className="flex items-center gap-2">
                         <Settings className="w-4 h-4" />

@@ -56,7 +56,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: true });
 
       const response = await authService.signIn(email, password);
-      console.log(response);
       get().setAccessToken(response.accessToken);
 
       await get().fetchMe();

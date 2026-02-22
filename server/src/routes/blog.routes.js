@@ -7,6 +7,8 @@ const router = express.Router();
 
 // Public routes
 router.get("/", blogController.getAllBlogs);
+router.get("/categories/all", blogController.getCategories);
+router.get("/tags/all", blogController.getTags);
 router.get("/:blog_id", blogController.getBlog);
 
 // Protected routes

@@ -94,6 +94,11 @@ export interface Blog {
   activity_total_parent_comments: number;
   created_at: string;
   updated_at: string;
+
+  // Populated relations (optional, present when included in query)
+  author?: Pick<User, "fullname" | "username" | "profile_img">;
+  category?: Category | null;
+  tags?: { tag: Tag }[];
 }
 
 export interface Comment {
