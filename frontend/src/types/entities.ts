@@ -45,6 +45,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   roles: UserRoleEntry[];
+  social_links?: UserSocialLinks | null;
 }
 
 export interface UserSocialLinks {

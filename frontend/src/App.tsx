@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
+import { useAuthStore } from "@/stores/useAuthStore";
 import Navbar from "./components/navbar.component";
 // import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -11,6 +13,7 @@ import HomePage from "@/pages/home.page.tsx";
 import BlogPage from "@/pages/blog.page.tsx";
 import ProtectedRoute from "@/components/auth/ProtectedRoute.tsx";
 import { EditorPages } from "@/pages/editor.pages.tsx";
+import ProfilePage from "@/pages/profile.page";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
 
@@ -20,6 +23,7 @@ import UserManagement from "@/pages/admin/UserManagement.tsx";
 import CategoryManagement from "@/pages/admin/CategoryManagement.tsx";
 import TagManagement from "@/pages/admin/TagManagement.tsx";
 import BlogManagement from "@/pages/admin/BlogManagement.tsx";
+import CommentManagement from "@/pages/admin/CommentManagement.tsx";
 // import ProfilePage from "./pages/profile.page";
 // import SearchPage from "./pages/search.page";
 // import BlogPage from "./pages/blog.page";
@@ -42,6 +46,12 @@ const MainLayout = () => {
 };
 
 function App() {
+  const { refresh } = useAuthStore();
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
   return (
     <Routes>
       <Route path="/signin" element={<SignInPage />} />
@@ -55,6 +65,7 @@ function App() {
         {/*    */}
         <Route element={<ProtectedRoute />}>
           <Route path="/editor" element={<EditorPages />} />
+          <Route path="/settings/profile" element={<ProfilePage />} />
         </Route>
 
         {/* Admin Routes */}
@@ -65,6 +76,7 @@ function App() {
             <Route path="/admin/categories" element={<CategoryManagement />} />
             <Route path="/admin/tags" element={<TagManagement />} />
             <Route path="/admin/blogs" element={<BlogManagement />} />
+            <Route path="/admin/comments" element={<CommentManagement />} />
           </Route>
         </Route>
         {/*  <Route path="*" element={<NotFoundPage />} />*/}

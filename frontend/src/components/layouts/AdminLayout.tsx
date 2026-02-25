@@ -7,6 +7,7 @@ import {
   FileText,
   ChevronRight,
   ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 
 const AdminLayout = () => {
@@ -20,6 +21,11 @@ const AdminLayout = () => {
     },
     { name: "Tag", path: "/admin/tags", icon: <Tag size={20} /> },
     { name: "Bài viết", path: "/admin/blogs", icon: <FileText size={20} /> },
+    {
+      name: "Bình luận",
+      path: "/admin/comments",
+      icon: <MessageSquare size={20} />,
+    },
   ];
 
   return (

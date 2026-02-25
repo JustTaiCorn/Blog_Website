@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "./ui/button";
 
 const Navbar = () => {
   const [searchBoxVisible, setSearchBoxVisible] = useState(false);
@@ -60,13 +61,14 @@ const Navbar = () => {
             </button>
 
             {/* Write Button - Desktop */}
-            <Link
-              to="/editor"
-              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+            <Button
+              onClick={() => navigate("/editor")}
+              variant="default"
+              className="hidden md:flex items-center gap-2 rounded-full"
             >
               <PenSquare className="w-4 h-4" />
               Write
-            </Link>
+            </Button>
 
             {/* Notification Button */}
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
@@ -98,7 +100,7 @@ const Navbar = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link
-                        to={`/user/${user?.username}`}
+                        to={`/settings/profile`}
                         className="flex items-center gap-2"
                       >
                         <User className="w-4 h-4" />

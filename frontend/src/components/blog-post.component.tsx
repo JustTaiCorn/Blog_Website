@@ -11,6 +11,7 @@ const BlogPostCard = ({ content, author }: any) => {
     des,
     banner,
     activity_total_likes,
+    liked = false,
     blog_id,
   } = content;
   const { fullname, profile_img, username } = author;
@@ -23,10 +24,13 @@ const BlogPostCard = ({ content, author }: any) => {
       <div className="w-full">
         <div className="flex gap-2 items-center mb-4">
           <Avatar>
-            <AvatarImage src={profile_img} />
+            <AvatarImage
+              src={profile_img}
+              className="size-10 rounded-full border border-grey"
+            />
             <AvatarFallback>{fullname.charAt(0)}</AvatarFallback>
           </Avatar>
-          <p className="line-clamp-1 mb-0">
+          <p className="line-clamp-1 mb-0 font-bold">
             {fullname} @{username}
           </p>
           <span className="min-w-fit text-dark-grey">
@@ -44,13 +48,18 @@ const BlogPostCard = ({ content, author }: any) => {
 
         <div className="flex gap-4 mt-5">
           {tags.length > 0 && (
-            <span className=" bg-blue-100 text-blue-700 py-1 px-4 rounded-full">
+            <span className="bg-blue-100 text-blue-700 py-1 px-4 rounded-full">
               {tags[0].tag.name}
             </span>
           )}
 
-          <span className="ml-3 flex items-center gap-2 text-red-500">
-            <Heart className="w-4 h-4" /> {activity_total_likes}
+          <span
+            className={`ml-3 flex items-center gap-2 ${liked ? "text-red-500" : "text-dark-grey"}`}
+          >
+            <Heart
+              className={`w-4 h-4 ${liked ? "fill-red-500 stroke-red-500" : ""}`}
+            />{" "}
+            {activity_total_likes}
           </span>
         </div>
       </div>

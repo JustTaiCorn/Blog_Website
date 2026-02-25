@@ -1,3 +1,4 @@
+import { useState } from "react";
 import AnimationWrapper from "@/common/page-animation";
 import BlogPostCard from "@/components/blog-post.component";
 import Loader from "@/components/loader.component";
@@ -6,25 +7,46 @@ import NoDataMessage from "@/components/nodata.component";
 import LoadMoreBtn from "@/components/load-more.component";
 import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function HomePage() {
+  const [sort, setSort] = useState<"desc" | "asc">("desc");
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useFetchBlogs();
+    useFetchBlogs(sort);
 
   const { data: categories = [] } = useBlogCategories();
+
+  if (isLoading) return <Loader />;
 
   return (
     <AnimationWrapper>
       <section className="h-cover flex justify-center gap-10 px-5 max-w-[1200px] mx-auto">
         {/* Feed Section */}
         <div className="w-full">
-          <div className="mb-8 border-b border-grey pb-2 mt-5">
-            <h1 className="font-medium text-xl">Latest Blogs</h1>
+          <div className="mb-8 border-b border-grey pb-2 mt-5 flex items-center justify-between">
+            <h1 className="font-medium text-xl">Home</h1>
+            <Select
+              value={sort}
+              onValueChange={(v) => setSort(v as "desc" | "asc")}
+            >
+              <SelectTrigger className="w-[140px] h-8 text-sm border-none shadow-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Mới nhất</SelectItem>
+                <SelectItem value="asc">Cũ nhất</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {isLoading ? (
-            <Loader />
-          ) : data?.pages[0].blogs.length ? (
+          {data?.pages[0].blogs.length ? (
             <>
               {data.pages.map((page: any, i: number) => (
                 <Fragment key={i}>

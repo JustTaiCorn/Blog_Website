@@ -14,7 +14,7 @@ import {
   useBlogCategories,
   useBlogTags,
 } from "@/services/blogService";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -23,9 +23,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 const blogSchema = z.object({
   title: z
@@ -113,7 +113,7 @@ export const BlogEditorComponent = () => {
   const [tagInput, setTagInput] = useState("");
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
-  const { register, handleSubmit, control, watch, setValue, getValues } =
+  const { register, handleSubmit, control, watch, setValue } =
     useForm<BlogFormValues>({
       defaultValues: {
         title: "",
@@ -203,15 +203,27 @@ export const BlogEditorComponent = () => {
       setValue("bannerFile", file);
     }
   };
+  const isSubmittingLocal =
+    uploadBannerMutation.isPending || createBlogMutation.isPending;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative">
+      {isSubmittingLocal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner className="w-8 h-8 text-primary" />
+            <p className="text-lg font-medium text-gray-700 animate-pulse">
+              Processing your request...
+            </p>
+          </div>
+        </div>
+      )}
+
       <BlogEditorNavbar
         title={title || "New Blog"}
         onPublish={handleSubmit((data) => onSubmit(data, false))}
         onSaveDraft={handleSubmit((data) => onSubmit(data, true))}
-        isSubmitting={
-          uploadBannerMutation.isPending || createBlogMutation.isPending
-        }
+        isSubmitting={isSubmittingLocal}
       />
 
       <AnimationWrapper>
@@ -245,7 +257,7 @@ export const BlogEditorComponent = () => {
               )}
               {uploadBannerMutation.isPending && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  <Spinner className="w-8 h-8 text-white" />
                 </div>
               )}
             </Label>
@@ -311,7 +323,7 @@ export const BlogEditorComponent = () => {
                   onKeyDown={handleTagInputKeyDown}
                   onFocus={() => setShowTagSuggestions(true)}
                   onBlur={() =>
-                    setTimeout(() => setShowTagSuggestions(false), 200)
+                    setTimeout(() => setShowTagSuggestions(false), 300)
                   }
                   disabled={selectedTags.length >= 10}
                 />
@@ -328,6 +340,10 @@ export const BlogEditorComponent = () => {
                           key={tag}
                           type="button"
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                          onMouseDown={(e) => {
+                            // Prevent input blur before click registers
+                            e.preventDefault();
+                          }}
                           onClick={() => {
                             addTag(tag);
                             setShowTagSuggestions(false);

@@ -36,7 +36,7 @@ model User {
   google_auth        Boolean   @default(false)
   deleted            Boolean   @default(false)
   total_posts        Int       @default(0)
-  total_reads        BigInt    @default(0)
+  total_reads        Int       @default(0)
   created_at         DateTime  @default(now()) @db.Timestamptz
   updated_at         DateTime  @updatedAt @db.Timestamptz
 
@@ -129,7 +129,7 @@ model Blog {
 
   activity_total_likes          Int       @default(0)
   activity_total_comments       Int       @default(0)
-  activity_total_reads          BigInt    @default(0)
+  activity_total_reads          Int       @default(0)
   activity_total_parent_comments Int      @default(0)
 
   created_at                    DateTime  @default(now()) @db.Timestamptz

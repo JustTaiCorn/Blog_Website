@@ -12,16 +12,6 @@ export interface Tag {
     blogs: number;
   };
 }
-
-interface GetAllTagsResponse {
-  tags?: Tag[];
-}
-
-interface TagResponse {
-  tag?: Tag;
-  message?: string;
-}
-
 export const tagService = {
   getAllTags: async (): Promise<Tag[]> => {
     const res = await api.get<Tag[]>("/admin/tags", {

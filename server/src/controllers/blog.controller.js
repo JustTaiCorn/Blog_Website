@@ -190,6 +190,25 @@ export const uploadBanner = async (req, res) => {
   }
 };
 
+// Upload Image
+export const uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Không có file nào được upload" });
+    }
+
+    res.status(200).json({
+      url: req.file.path,
+      public_id: req.file.filename,
+    });
+  } catch (error) {
+    console.error("Error in uploadImage:", error);
+    res
+      .status(500)
+      .json({ message: "Lỗi khi upload ảnh", error: error.message });
+  }
+};
+
 // Get Single Blog
 export const getBlog = async (req, res) => {
   try {
@@ -225,10 +244,8 @@ export const getBlog = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy blog" });
     }
 
-    // Convert BigInt fields to Number for JSON serialization
     const serializedBlog = {
       ...blog,
-      activity_total_reads: Number(blog.activity_total_reads),
     };
 
     // Set cache
@@ -244,29 +261,25 @@ export const getBlog = async (req, res) => {
 // Get All Blogs (Public)
 export const getAllBlogs = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category } = req.query;
-    const cacheKey = `blogs:list:p${page}:l${limit}:c${category || "all"}`;
-
-    const cachedBlogs = await getCache(cacheKey);
-    if (cachedBlogs) {
-      return res.status(200).json({ ...cachedBlogs, fromCache: true });
-    }
-
+    const { page = 1, limit = 10, sort = "desc" } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const take = parseInt(limit);
+    const orderDirection = sort === "asc" ? "asc" : "desc";
+    const cacheKey = `blogs:list:page=${page}:limit=${limit}:sort=${sort}`;
 
-    const where = {
-      draft: false,
-      published: true,
-    };
-
-    if (category) {
-      where.category = { slug: category };
+    if (!req.user) {
+      const cachedData = await getCache(cacheKey);
+      if (cachedData) {
+        return res.status(200).json({ ...cachedData, fromCache: true });
+      }
     }
 
     const [blogs, total] = await Promise.all([
       prisma.blog.findMany({
-        where,
+        where: {
+          draft: false,
+          published: true,
+        },
         include: {
           author: {
             select: {
@@ -275,7 +288,6 @@ export const getAllBlogs = async (req, res) => {
               profile_img: true,
             },
           },
-          category: true,
           tags: {
             include: {
               tag: true,
@@ -283,31 +295,45 @@ export const getAllBlogs = async (req, res) => {
           },
         },
         orderBy: {
-          published_at: "desc",
+          published_at: orderDirection,
         },
         skip,
         take,
       }),
-      prisma.blog.count({ where }),
+      prisma.blog.count({ where: { draft: false, published: true } }),
     ]);
 
-    // Convert BigInt fields to Number for JSON serialization
-    const serializedBlogs = blogs.map((blog) => ({
-      ...blog,
-      activity_total_reads: Number(blog.activity_total_reads),
-    }));
+    let serializedBlogs = blogs.map((blog) => ({ ...blog, liked: false }));
 
-    const response = {
+    const responseData = {
       blogs: serializedBlogs,
       total,
       page: parseInt(page),
       totalPages: Math.ceil(total / take),
     };
 
-    // Set cache
-    await setCache(cacheKey, response);
+    // Cache kết quả cho anonymous users
+    await setCache(cacheKey, responseData);
 
-    res.status(200).json(response);
+    // Nếu user đã đăng nhập, bổ sung trạng thái liked
+    if (req.user) {
+      const blogIds = blogs.map((b) => b.id);
+      const userLikes = await prisma.blogLike.findMany({
+        where: {
+          user_id: req.user.id,
+          blog_id: { in: blogIds },
+        },
+        select: { blog_id: true },
+      });
+
+      const likedSet = new Set(userLikes.map((l) => l.blog_id));
+      responseData.blogs = serializedBlogs.map((blog) => ({
+        ...blog,
+        liked: likedSet.has(blog.id),
+      }));
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     console.error("Error in getAllBlogs:", error);
     res

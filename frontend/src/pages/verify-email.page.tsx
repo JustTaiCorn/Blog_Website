@@ -2,13 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import api from "@/lib/axios";
 
 const VerifyEmailPage = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
+    "loading",
   );
   const [message, setMessage] = useState("");
   const [countdown, setCountdown] = useState(5);
@@ -23,13 +24,13 @@ const VerifyEmailPage = () => {
         const response = await api.get(`/auth/verify-email/${token}`);
         setStatus("success");
         setMessage(
-          response.data.message || "Email đã được xác thực thành công!"
+          response.data.message || "Email đã được xác thực thành công!",
         );
       } catch (error: any) {
         setStatus("error");
         setMessage(
           error.response?.data?.message ||
-            "Xác thực email thất bại. Link có thể đã hết hạn."
+            "Xác thực email thất bại. Link có thể đã hết hạn.",
         );
       }
     };
@@ -65,7 +66,7 @@ const VerifyEmailPage = () => {
         <CardContent className="p-8">
           {status === "loading" && (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <Spinner className="w-16 h-16 mx-auto mb-4 text-purple-500" />
               <h2 className="text-xl font-semibold mb-2">Đang xác thực...</h2>
               <p className="text-muted-foreground">
                 Vui lòng đợi trong giây lát

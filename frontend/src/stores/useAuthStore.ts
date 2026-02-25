@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { authService } from "@/services/authService";
+import { userService } from "@/services/userService";
 import { authWithGoogle } from "@/common/firebase";
 import { toast } from "react-toastify";
 import type { User } from "@/types/entities";
@@ -22,6 +23,8 @@ interface AuthState {
   fetchMe: () => Promise<void>;
   refresh: () => Promise<void>;
   isAdmin: () => boolean;
+  updateProfile: (data: FormData) => Promise<boolean>;
+  setUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -34,6 +37,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   clearState: () => {
     set({ accessToken: null, user: null, loading: false });
+  },
+
+  setUser: (user) => {
+    set({ user });
   },
 
   signUp: async (username, password, email, fullname) => {
@@ -60,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       await get().fetchMe();
 
-      toast.success(response.message);
+      toast.success("Đăng nhập thành công!");
     } catch (error: any) {
       console.error(error);
       const errorMessage =
@@ -130,10 +137,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await fetchMe();
       }
     } catch (error: any) {
-      console.error(error);
-      const errorMessage =
-        error.response?.data?.message || "Phiên đăng nhập đã hết hạn!";
-      toast.error(errorMessage);
       get().clearState();
     } finally {
       set({ loading: false });
@@ -143,5 +146,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user || !user.roles) return false;
     return user.roles.some((r) => r.role === "ADMIN");
+  },
+
+  updateProfile: async (data: FormData) => {
+    try {
+      const response = await userService.updateProfile(data);
+      toast.success(response.message);
+      return true;
+    } catch (error: any) {
+      console.error(error);
+      const errorMessage =
+        error.response?.data?.message || "Cập nhật hồ sơ thất bại!";
+      toast.error(errorMessage);
+      return false;
+    }
   },
 }));

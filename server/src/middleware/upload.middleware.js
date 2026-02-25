@@ -23,4 +23,29 @@ const upload = multer({
   },
 });
 
+// Avatar upload — profile images
+const avatarStorage = new CloudinaryStorage({
+  cloudinary: cloudinaryConfig,
+  params: {
+    folder: "profile-avatars",
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+    transformation: [
+      { width: 400, height: 400, crop: "fill", gravity: "face" },
+    ],
+  },
+});
+
+const uploadAvatar = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Chỉ chấp nhận file ảnh!"), false);
+    }
+  },
+});
+
 export default upload;
+export { uploadAvatar };

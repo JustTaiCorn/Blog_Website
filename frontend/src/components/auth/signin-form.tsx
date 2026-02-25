@@ -31,12 +31,19 @@ export function SignInForm({
   });
 
   const onSubmit = async (data: SignInFormValues) => {
-    const { email, password } = data;
-    await signIn(email, password);
-    if (useAuthStore.getState().isAdmin()) {
-      navigate("/admin");
-    } else {
-      navigate("/");
+    try {
+      const { email, password } = data;
+      await signIn(email, password);
+      const state = useAuthStore.getState();
+      if (state.user) {
+        if (state.isAdmin()) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -49,7 +56,6 @@ export function SignInForm({
         navigate("/");
       }
     } catch (error) {
-      // Error đã được handle trong store
       console.error(error);
     }
   };
