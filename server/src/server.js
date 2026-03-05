@@ -10,7 +10,7 @@ import { protectedRoute } from "./middleware/auth.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import blogRouter from "./routes/blog.routes.js";
-import adminRouter from "./routes/admin.routes.js";
+import adminRouter from "./routes/admin/index.js";
 import interactionRouter from "./routes/interaction.routes.js";
 import admin from "firebase-admin";
 import serviceAccount from "../serviceAccountKey.json" with { type: "json" };

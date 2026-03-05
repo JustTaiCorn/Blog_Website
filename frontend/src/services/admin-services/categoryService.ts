@@ -14,15 +14,6 @@ export interface Category {
   };
 }
 
-interface GetAllCategoriesResponse {
-  categories?: Category[];
-}
-
-interface CategoryResponse {
-  category?: Category;
-  message?: string;
-}
-
 export const categoryService = {
   getAllCategories: async (): Promise<Category[]> => {
     const res = await api.get<Category[]>("/admin/categories", {

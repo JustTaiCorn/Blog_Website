@@ -4,7 +4,7 @@ import BlogContent from "@/components/blog-content.component";
 import BlogBreadcrumb from "@/components/blog-breadcrumb.component";
 import BlogInteraction from "@/components/blog-interaction.component";
 import CommentsSection from "@/components/comments.component";
-import { getFullDay } from "@/common/date";
+import { getDay } from "@/common/date";
 import { MessageCircle, Share2, Bookmark } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { Link } from "react-router-dom";
@@ -91,12 +91,11 @@ const BlogPage = () => {
                 </span>
               </p>
               <p className="text-sm text-dark-grey mb-0">
-                {getFullDay(published_at)}
+                {getDay(published_at)}
               </p>
             </div>
           </div>
 
-          {/* Banner */}
           {banner && (
             <div className="my-8 rounded-lg overflow-hidden">
               <img
@@ -107,12 +106,10 @@ const BlogPage = () => {
             </div>
           )}
 
-          {/* Blog Content (TipTap Read-Only) */}
           <div className="my-12 blog-page-content font-gelasio text-xl leading-10">
             <BlogContent content={content} />
           </div>
 
-          {/* Tags */}
           {tags && tags.length > 0 && (
             <div className="flex flex-wrap gap-2 my-8">
               {tags.map((t: any) => (
@@ -127,13 +124,10 @@ const BlogPage = () => {
             </div>
           )}
 
-          {/* Interaction Bar */}
           <div className="flex items-center gap-6 py-4 px-4 border border-grey shadow-sm my-8 rounded-xl">
             <div className="flex items-center gap-6">
-              {/* Like button (functional) */}
               <BlogInteraction blog_id={blog_id!} />
 
-              {/* Comment count */}
               <div className="flex items-center gap-2 text-dark-grey">
                 <MessageCircle className="w-6 h-6" />
                 <span className="text-xl">{activity_total_comments}</span>
@@ -156,17 +150,13 @@ const BlogPage = () => {
             </div>
           </div>
 
-          {/* Comments Section */}
           <CommentsSection
             blog_id={blog_id!}
             totalComments={activity_total_comments}
           />
         </div>
 
-        {/* Sidebar */}
-        <aside className="w-[300px] max-lg:w-full">
-          {/* Sidebar content */}
-        </aside>
+        <aside className="w-[300px] max-lg:w-full"></aside>
       </div>
     </AnimationWrapper>
   );

@@ -6,9 +6,9 @@ import {
   useAddReply,
   useDeleteComment,
   useToggleCommentLike,
-} from "@/services/blogService";
+} from "@/services/commentService";
 import CommentField from "./comment-field.component";
-import { getFullDay } from "@/common/date";
+import { getDay } from "@/common/date.tsx";
 
 interface CommentCardProps {
   comment: any;
@@ -86,7 +86,7 @@ const CommentCard = ({
             </span>
             <span className="text-xs text-dark-grey">·</span>
             <span className="text-xs text-dark-grey">
-              {getFullDay(comment.commented_at)}
+              {getDay(comment.commented_at)}
             </span>
           </div>
 

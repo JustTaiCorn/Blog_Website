@@ -4,7 +4,7 @@ import { Trash2, MessageSquare, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
-import { getFullDay } from "@/common/date";
+import { getDay } from "@/common/date";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 
 interface CommentItem {
@@ -118,7 +118,7 @@ const CommentManagement = () => {
                     )}
                     <span className="text-xs text-dark-grey">·</span>
                     <span className="text-xs text-dark-grey">
-                      {getFullDay(c.commented_at)}
+                      {getDay(c.commented_at)}
                     </span>
                   </div>
 

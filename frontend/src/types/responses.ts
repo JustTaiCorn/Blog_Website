@@ -1,8 +1,5 @@
 import type {
   UserSocialLinks,
-  Category,
-  Tag,
-  Blog,
   Comment,
   Notification,
 } from "./entities";
@@ -26,15 +23,6 @@ export interface UserProfile extends UserPublicProfile {
   verified: boolean;
   google_auth: boolean;
 }
-
-// ==================== BLOG RESPONSE TYPES ====================
-
-export interface BlogWithAuthor extends Blog {
-  author: UserPublicProfile;
-  category?: Category | null;
-  tags?: Tag[];
-}
-
 export interface BlogCard {
   blog_id: string;
   title: string;
@@ -55,11 +43,6 @@ export interface BlogCard {
     slug: string;
   } | null;
   tags?: { name: string; slug: string }[];
-}
-
-export interface BlogDetail extends BlogWithAuthor {
-  isLiked?: boolean;
-  userLikeType?: "UP" | "DOWN" | null;
 }
 
 // ==================== COMMENT RESPONSE TYPES ====================
