@@ -8,8 +8,9 @@ import {
   getAllCategories as getCategoriesService,
   getAllTags as getTagsService,
 } from "../services/blog.service.js";
+import CustomError from "../config/Custom-error.js";
 
-export const createBlog = async (req, res) => {
+export const createBlog = async (req, res, next) => {
   try {
     const result = await createBlogService(req.body, req.user.id);
 
@@ -20,14 +21,11 @@ export const createBlog = async (req, res) => {
       blog_id: result.blog_id,
     });
   } catch (error) {
-    console.error("Error in createBlog:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi tạo blog" });
+    next(error);
   }
 };
 
-export const updateBlog = async (req, res) => {
+export const updateBlog = async (req, res, next) => {
   try {
     const result = await updateBlogService(
       req.params.blog_id,
@@ -40,18 +38,15 @@ export const updateBlog = async (req, res) => {
       blog_id: result.blog_id,
     });
   } catch (error) {
-    console.error("Error in updateBlog:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi cập nhật blog" });
+    next(error);
   }
 };
 
 // Upload Banner
-export const uploadBanner = async (req, res) => {
+export const uploadBanner = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "Không có file nào được upload" });
+      throw new CustomError(400, "Không có file nào được upload");
     }
 
     res.status(200).json({
@@ -59,17 +54,14 @@ export const uploadBanner = async (req, res) => {
       public_id: req.file.filename,
     });
   } catch (error) {
-    console.error("Error in uploadBanner:", error);
-    res
-      .status(500)
-      .json({ message: "Lỗi khi upload ảnh", error: error.message });
+    next(error);
   }
 };
 
-export const uploadImage = async (req, res) => {
+export const uploadImage = async (req, res, next) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "Không có file nào được upload" });
+      throw new CustomError(400, "Không có file nào được upload");
     }
 
     res.status(200).json({
@@ -77,87 +69,70 @@ export const uploadImage = async (req, res) => {
       public_id: req.file.filename,
     });
   } catch (error) {
-    console.error("Error in uploadImage:", error);
-    res
-      .status(500)
-      .json({ message: "Lỗi khi upload ảnh", error: error.message });
+    next(error);
   }
 };
 
 // Get Single Blog
-export const getBlog = async (req, res) => {
+export const getBlog = async (req, res, next) => {
   try {
     const result = await getBlogById(req.params.blog_id);
 
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getBlog:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi lấy thông tin blog" });
+    next(error);
   }
 };
 
 // Get All Blogs (Public)
-export const getAllBlogs = async (req, res) => {
+export const getAllBlogs = async (req, res, next) => {
   try {
     const responseData = await getAllPublishedBlogs(req.query, req.user);
 
     res.status(200).json(responseData);
   } catch (error) {
-    console.error("Error in getAllBlogs:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi lấy danh sách blog" });
+    next(error);
   }
 };
 
 // Get Categories
-export const getCategories = async (req, res) => {
+export const getCategories = async (req, res, next) => {
   try {
     const categories = await getCategoriesService();
     res.status(200).json({ categories });
   } catch (error) {
-    console.error("Error in getCategories:", error);
-    res.status(500).json({ message: "Lỗi khi lấy danh mục" });
+    next(error);
   }
 };
 
 // Get Tags
-export const getTags = async (req, res) => {
+export const getTags = async (req, res, next) => {
   try {
     const tags = await getTagsService();
     res.status(200).json({ tags });
   } catch (error) {
-    console.error("Error in getTags:", error);
-    res.status(500).json({ message: "Lỗi khi lấy tags" });
+    next(error);
   }
 };
 
 // Delete Blog
-export const deleteBlog = async (req, res) => {
+export const deleteBlog = async (req, res, next) => {
   try {
     await deleteBlogByUser(req.params.blog_id, req.user.id);
 
     res.status(200).json({ message: "Xoá blog thành công" });
   } catch (error) {
-    console.error("Error in deleteBlog:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi xoá blog" });
+    next(error);
   }
 };
 
 // Get My Blogs (authenticated user's blogs)
-export const getMyBlogs = async (req, res) => {
+export const getMyBlogs = async (req, res, next) => {
   try {
     const result = await getMyBlogsService(req.user.id, req.query);
 
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getMyBlogs:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi khi lấy danh sách blog" });
+    next(error);
   }
 };

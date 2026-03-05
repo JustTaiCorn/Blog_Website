@@ -8,32 +8,27 @@ import {
   getCommentLikeStatus as getCommentLikeStatusService,
   toggleCommentLike as toggleCommentLikeService,
 } from "../services/interaction.service.js";
+import CustomError from "../config/Custom-error.js";
 
-export const getLikeStatus = async (req, res) => {
+export const getLikeStatus = async (req, res, next) => {
   try {
     const result = await getLikeStatusService(req.params.blog_id, req.user?.id);
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getLikeStatus:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const toggleLike = async (req, res) => {
+export const toggleLike = async (req, res, next) => {
   try {
     const result = await toggleLikeService(req.params.blog_id, req.user.id);
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in toggleLike:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const getComments = async (req, res) => {
+export const getComments = async (req, res, next) => {
   try {
     const result = await getCommentsService(
       req.params.blog_id,
@@ -42,21 +37,16 @@ export const getComments = async (req, res) => {
     );
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getComments:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const addComment = async (req, res) => {
+export const addComment = async (req, res, next) => {
   try {
     const { comment } = req.body;
 
     if (!comment || comment.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Nội dung bình luận không được để trống" });
+      throw new CustomError(400, "Nội dung bình luận không được để trống");
     }
 
     const newComment = await addCommentService(
@@ -66,21 +56,16 @@ export const addComment = async (req, res) => {
     );
     res.status(201).json({ comment: newComment });
   } catch (error) {
-    console.error("Error in addComment:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const addReply = async (req, res) => {
+export const addReply = async (req, res, next) => {
   try {
     const { comment } = req.body;
 
     if (!comment || comment.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Nội dung phản hồi không được để trống" });
+      throw new CustomError(400, "Nội dung phản hồi không được để trống");
     }
 
     const newReply = await addReplyService(
@@ -91,14 +76,11 @@ export const addReply = async (req, res) => {
     );
     res.status(201).json({ reply: newReply });
   } catch (error) {
-    console.error("Error in addReply:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const deleteComment = async (req, res) => {
+export const deleteComment = async (req, res, next) => {
   try {
     const isAdmin = req.user.roles?.some((r) => r.role === "ADMIN");
 
@@ -110,14 +92,11 @@ export const deleteComment = async (req, res) => {
     );
     res.status(200).json({ message: "Đã xóa bình luận" });
   } catch (error) {
-    console.error("Error in deleteComment:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const getCommentLikeStatus = async (req, res) => {
+export const getCommentLikeStatus = async (req, res, next) => {
   try {
     const result = await getCommentLikeStatusService(
       req.params.comment_id,
@@ -125,14 +104,11 @@ export const getCommentLikeStatus = async (req, res) => {
     );
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getCommentLikeStatus:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const toggleCommentLike = async (req, res) => {
+export const toggleCommentLike = async (req, res, next) => {
   try {
     const { type = "UP" } = req.body;
     const result = await toggleCommentLikeService(
@@ -142,9 +118,6 @@ export const toggleCommentLike = async (req, res) => {
     );
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error in toggleCommentLike:", error);
-    res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };

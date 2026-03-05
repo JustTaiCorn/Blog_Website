@@ -12,6 +12,7 @@ import userRouter from "./routes/user.routes.js";
 import blogRouter from "./routes/blog.routes.js";
 import adminRouter from "./routes/admin/index.js";
 import interactionRouter from "./routes/interaction.routes.js";
+import errorHandler from "./config/errorHandler.js";
 import admin from "firebase-admin";
 import serviceAccount from "../serviceAccountKey.json" with { type: "json" };
 
@@ -49,12 +50,7 @@ app.use((req, res, next) => {
   res.status(404).json({ error: "Not Found" });
 });
 
-app.use((err, req, res, next) => {
-  const message = err.message;
-  const error = req.app.get("env") === "development" ? err : {};
-  res.status(err.status || 500);
-  res.json({ message, error });
-});
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server đang chạy trên cổng ${PORT}`);

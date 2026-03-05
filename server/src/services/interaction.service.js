@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { deleteCache } from "../lib/redis.js";
+import CustomError from "../config/Custom-error.js";
 
 export const getLikeStatus = async (blogId, userId) => {
   const blog = await prisma.blog.findUnique({
@@ -8,9 +9,7 @@ export const getLikeStatus = async (blogId, userId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   let liked = false;
@@ -31,9 +30,7 @@ export const toggleLike = async (blogId, userId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   const existing = await prisma.blogLike.findUnique({
@@ -41,7 +38,6 @@ export const toggleLike = async (blogId, userId) => {
   });
 
   if (existing) {
-    // Unlike
     await prisma.$transaction([
       prisma.blogLike.delete({
         where: { user_id_blog_id: { user_id: userId, blog_id: blog.id } },
@@ -50,7 +46,6 @@ export const toggleLike = async (blogId, userId) => {
         where: { id: blog.id },
         data: { activity_total_likes: { decrement: 1 } },
       }),
-      // Remove notification if exists
       prisma.notification.deleteMany({
         where: {
           type: "like",
@@ -64,7 +59,6 @@ export const toggleLike = async (blogId, userId) => {
     await deleteCache(`blogs:detail:${blogId}`);
     return { liked: false, message: "Đã bỏ thích" };
   } else {
-    // Like
     await prisma.$transaction([
       prisma.blogLike.create({
         data: { user_id: userId, blog_id: blog.id },
@@ -73,7 +67,6 @@ export const toggleLike = async (blogId, userId) => {
         where: { id: blog.id },
         data: { activity_total_likes: { increment: 1 } },
       }),
-      // Create notification (not for self-likes)
       ...(blog.author_id !== userId
         ? [
             prisma.notification.create({
@@ -104,9 +97,7 @@ export const getComments = async (blogId, query, userId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   const [rawComments, total] = await Promise.all([
@@ -178,9 +169,7 @@ export const addComment = async (blogId, commentText, userId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   const newComment = await prisma.$transaction(async (tx) => {
@@ -212,7 +201,6 @@ export const addComment = async (blogId, commentText, userId) => {
       },
     });
 
-    // Notify blog author (not for self-comments)
     if (blog.author_id !== userId) {
       await tx.notification.create({
         data: {
@@ -238,9 +226,7 @@ export const addReply = async (blogId, commentId, replyText, userId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   const parentComment = await prisma.comment.findUnique({
@@ -248,9 +234,7 @@ export const addReply = async (blogId, commentId, replyText, userId) => {
   });
 
   if (!parentComment || parentComment.blog_id !== blog.id) {
-    const error = new Error("Không tìm thấy bình luận gốc");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy bình luận gốc");
   }
 
   const newReply = await prisma.$transaction(async (tx) => {
@@ -280,7 +264,6 @@ export const addReply = async (blogId, commentId, replyText, userId) => {
       data: { activity_total_comments: { increment: 1 } },
     });
 
-    // Notify the parent comment author
     if (parentComment.commented_by !== userId) {
       await tx.notification.create({
         data: {
@@ -307,9 +290,7 @@ export const deleteComment = async (blogId, commentId, userId, isAdmin) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   const comment = await prisma.comment.findUnique({
@@ -320,23 +301,17 @@ export const deleteComment = async (blogId, commentId, userId, isAdmin) => {
   });
 
   if (!comment || comment.blog_id !== blog.id) {
-    const error = new Error("Không tìm thấy bình luận");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy bình luận");
   }
 
   if (comment.commented_by !== userId && !isAdmin) {
-    const error = new Error("Bạn không có quyền xóa bình luận này");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Bạn không có quyền xóa bình luận này");
   }
 
-  // Count how many comments will be removed (comment itself + its active replies)
   const replyCount = comment.is_reply ? 0 : comment.replies.length;
   const totalToRemove = 1 + replyCount;
 
   await prisma.$transaction(async (tx) => {
-    // Delete all replies first
     if (!comment.is_reply && replyCount > 0) {
       await tx.comment.deleteMany({
         where: { parent_id: comment.id },
@@ -354,7 +329,6 @@ export const deleteComment = async (blogId, commentId, userId, isAdmin) => {
       },
     });
 
-    // Remove related notifications
     await tx.notification.deleteMany({
       where: {
         OR: [
@@ -393,7 +367,6 @@ export const toggleCommentLike = async (commentId, userId, type = "UP") => {
 
   if (existing) {
     if (existing.type === type) {
-      // Same type → remove vote
       await prisma.commentLike.delete({
         where: {
           user_id_comment_id: {
@@ -404,7 +377,6 @@ export const toggleCommentLike = async (commentId, userId, type = "UP") => {
       });
       return { user_vote: null, message: "Đã hủy vote" };
     } else {
-      // Different type → switch vote
       await prisma.commentLike.update({
         where: {
           user_id_comment_id: {

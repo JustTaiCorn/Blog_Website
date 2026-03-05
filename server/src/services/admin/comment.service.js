@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import CustomError from "../../config/Custom-error.js";
 
 export const getAllComments = async (query) => {
   const page = parseInt(query.page) || 1;
@@ -37,13 +38,10 @@ export const deleteComment = async (id) => {
   });
 
   if (!comment) {
-    const error = new Error("Không tìm thấy bình luận");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy bình luận");
   }
 
   await prisma.$transaction(async (tx) => {
-    // Delete replies first
     if (!comment.is_reply && comment.replies.length > 0) {
       await tx.comment.deleteMany({ where: { parent_id: comment.id } });
     }

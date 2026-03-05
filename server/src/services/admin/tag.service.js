@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { generateSlug } from "../../utils/utils.js";
+import CustomError from "../../config/Custom-error.js";
 
 export const getAllTags = async () => {
   return prisma.tag.findMany({
@@ -40,17 +41,14 @@ export const deleteTag = async (id) => {
   });
 
   if (!tag) {
-    const error = new Error("Không tìm thấy tag");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy tag");
   }
 
   if (tag._count.blogs > 0) {
-    const error = new Error(
+    throw new CustomError(
+      400,
       `Không thể xóa tag này vì đang có ${tag._count.blogs} bài viết sử dụng`,
     );
-    error.statusCode = 400;
-    throw error;
   }
 
   await prisma.tag.delete({

@@ -6,15 +6,17 @@ import {
   refreshAccessToken,
   googleAuthUser,
 } from "../services/auth.service.js";
+import CustomError from "../config/Custom-error.js";
 
-export const signUp = async (req, res) => {
+export const signUp = async (req, res, next) => {
   try {
     const { username, password, email, fullname } = req.body;
 
     if (!username || !password || !email || !fullname) {
-      return res.status(400).json({
-        message: "Không thể thiếu username, password, email, và fullname",
-      });
+      throw new CustomError(
+        400,
+        "Không thể thiếu username, password, email, và fullname",
+      );
     }
 
     await signUpUser({ username, password, email, fullname });
@@ -24,19 +26,16 @@ export const signUp = async (req, res) => {
         "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
     });
   } catch (error) {
-    console.error("Lỗi khi gọi signUp:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.params;
 
     if (!token) {
-      return res.status(400).json({ message: "Token không hợp lệ" });
+      throw new CustomError(400, "Token không hợp lệ");
     }
 
     const user = await verifyEmailToken(token);
@@ -46,19 +45,16 @@ export const verifyEmail = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("Lỗi khi gọi verifyEmail:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const signIn = async (req, res) => {
+export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Thiếu email hoặc password." });
+      throw new CustomError(400, "Thiếu email hoặc password.");
     }
 
     const result = await signInUser(email, password);
@@ -76,14 +72,11 @@ export const signIn = async (req, res) => {
       user: result.user,
     });
   } catch (error) {
-    console.error("Lỗi khi gọi signIn:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const signOut = async (req, res) => {
+export const signOut = async (req, res, next) => {
   try {
     const token = req.cookies?.refreshToken;
 
@@ -95,36 +88,32 @@ export const signOut = async (req, res) => {
 
     return res.status(204).send();
   } catch (error) {
-    console.error("Lỗi khi gọi signOut:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const refreshToken = async (req, res) => {
+export const refreshToken = async (req, res, next) => {
   try {
     const token = req.cookies?.refreshToken;
 
     if (!token) {
-      return res.status(401).json({ message: "Token không tồn tại." });
+      throw new CustomError(401, "Token không tồn tại.");
     }
 
     const result = await refreshAccessToken(token);
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Lỗi khi gọi refreshToken:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const googleAuth = async (req, res) => {
+export const googleAuth = async (req, res, next) => {
   try {
     const { accessToken: firebaseToken } = req.body;
 
     if (!firebaseToken) {
-      return res.status(400).json({ message: "Thiếu Firebase token." });
+      throw new CustomError(400, "Thiếu Firebase token.");
     }
 
     const result = await googleAuthUser(firebaseToken);
@@ -142,9 +131,6 @@ export const googleAuth = async (req, res) => {
       user: result.user,
     });
   } catch (error) {
-    console.error("Lỗi khi gọi googleAuth:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };

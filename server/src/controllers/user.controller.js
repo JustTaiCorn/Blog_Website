@@ -4,25 +4,25 @@ import {
   getUserSocialLinks,
   updateUserSocialLinks,
 } from "../services/user.service.js";
+import CustomError from "../config/Custom-error.js";
 
-export const authMe = async (req, res) => {
+export const authMe = async (req, res, next) => {
   try {
     const user = req.user;
 
     if (!user) {
-      return res.status(401).json({ message: "Người dùng không tồn tại." });
+      throw new CustomError(401, "Người dùng không tồn tại.");
     }
 
     const userData = await getAuthenticatedUser(user);
 
     return res.status(200).json({ user: userData });
   } catch (error) {
-    console.error("Lỗi khi gọi authMe:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const { fullname, username, bio } = req.body;
 
@@ -32,25 +32,21 @@ export const updateProfile = async (req, res) => {
       message: "Cập nhật hồ sơ thành công!",
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật hồ sơ:", error);
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const getSocialLinks = async (req, res) => {
+export const getSocialLinks = async (req, res, next) => {
   try {
     const socialLinks = await getUserSocialLinks(req.user.id);
 
     return res.status(200).json({ social_links: socialLinks });
   } catch (error) {
-    console.error("Lỗi khi lấy social links:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    next(error);
   }
 };
 
-export const updateSocialLinks = async (req, res) => {
+export const updateSocialLinks = async (req, res, next) => {
   try {
     await updateUserSocialLinks(req.user.id, req.body);
 
@@ -58,7 +54,6 @@ export const updateSocialLinks = async (req, res) => {
       message: "Cập nhật liên kết xã hội thành công!",
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật social links:", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    next(error);
   }
 };

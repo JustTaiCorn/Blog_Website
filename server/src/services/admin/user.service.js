@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import CustomError from "../../config/Custom-error.js";
 
 export const getAllUsers = async () => {
   return prisma.user.findMany({
@@ -23,9 +24,7 @@ export const getAllUsers = async () => {
 
 export const updateUserRole = async (userId, role, action) => {
   if (!["ADMIN", "USER"].includes(role)) {
-    const error = new Error("Role không hợp lệ");
-    error.statusCode = 400;
-    throw error;
+    throw new CustomError(400, "Role không hợp lệ");
   }
 
   if (action === "add") {
@@ -44,9 +43,7 @@ export const updateUserRole = async (userId, role, action) => {
     });
   } else {
     if (role === "USER") {
-      const error = new Error("Không thể xóa quyền USER");
-      error.statusCode = 400;
-      throw error;
+      throw new CustomError(400, "Không thể xóa quyền USER");
     }
     await prisma.userRoleEntry.delete({
       where: {

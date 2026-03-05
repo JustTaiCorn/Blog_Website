@@ -7,20 +7,17 @@ import {
   deleteCache,
   deleteCacheByPattern,
 } from "../lib/redis.js";
+import CustomError from "../config/Custom-error.js";
 
 export const createBlog = async (data, authorId) => {
   const { title, content, banner, des, category_id, tags, draft } = data;
 
   if (!draft) {
     if (!title || title.trim().length === 0) {
-      const error = new Error("Tiêu đề không được để trống");
-      error.statusCode = 400;
-      throw error;
+      throw new CustomError(400, "Tiêu đề không được để trống");
     }
     if (!content) {
-      const error = new Error("Nội dung không được để trống");
-      error.statusCode = 400;
-      throw error;
+      throw new CustomError(400, "Nội dung không được để trống");
     }
   }
 
@@ -89,15 +86,11 @@ export const updateBlog = async (blogId, data, authorId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   if (blog.author_id !== authorId) {
-    const error = new Error("Bạn không có quyền chỉnh sửa blog này");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Bạn không có quyền chỉnh sửa blog này");
   }
 
   const updatedData = {
@@ -121,12 +114,10 @@ export const updateBlog = async (blogId, data, authorId) => {
 
   // Update Tags
   if (tags && Array.isArray(tags)) {
-    // 1. Delete existing BlogTags
     await prisma.blogTag.deleteMany({
       where: { blog_id: blog.id },
     });
 
-    // 2. Add new BlogTags
     for (const tagName of tags) {
       let tag = await prisma.tag.findUnique({ where: { name: tagName } });
       if (!tag) {
@@ -156,7 +147,6 @@ export const updateBlog = async (blogId, data, authorId) => {
 export const getBlogById = async (blogId) => {
   const cacheKey = `blogs:detail:${blogId}`;
 
-  // Check cache
   const cachedBlog = await getCache(cacheKey);
   if (cachedBlog) {
     return { blog: cachedBlog, fromCache: true };
@@ -182,16 +172,11 @@ export const getBlogById = async (blogId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
-  const serializedBlog = {
-    ...blog,
-  };
+  const serializedBlog = { ...blog };
 
-  // Set cache
   await setCache(cacheKey, serializedBlog);
 
   return { blog: serializedBlog };
@@ -249,10 +234,8 @@ export const getAllPublishedBlogs = async (query, user) => {
     totalPages: Math.ceil(total / take),
   };
 
-  // Cache kết quả cho anonymous users
   await setCache(cacheKey, responseData);
 
-  // Nếu user đã đăng nhập, bổ sung trạng thái liked
   if (user) {
     const blogIds = blogs.map((b) => b.id);
     const userLikes = await prisma.blogLike.findMany({
@@ -279,28 +262,22 @@ export const deleteBlogByUser = async (blogId, authorId) => {
   });
 
   if (!blog) {
-    const error = new Error("Không tìm thấy blog");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy blog");
   }
 
   if (blog.author_id !== authorId) {
-    const error = new Error("Bạn không có quyền xoá blog này");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Bạn không có quyền xoá blog này");
   }
 
   await prisma.blog.delete({
     where: { blog_id: blogId },
   });
 
-  // Decrement user total_posts
   await prisma.user.update({
     where: { id: authorId },
     data: { total_posts: { decrement: 1 } },
   });
 
-  // Invalidate caches
   await deleteCache(`blogs:detail:${blogId}`);
   await deleteCacheByPattern("blogs:list:*");
 };

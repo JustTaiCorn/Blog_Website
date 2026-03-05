@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { generateSlug } from "../../utils/utils.js";
+import CustomError from "../../config/Custom-error.js";
 
 export const getAllCategories = async () => {
   return prisma.category.findMany({
@@ -30,7 +31,6 @@ export const updateCategory = async (id, name, details) => {
 };
 
 export const deleteCategory = async (id) => {
-  // Check if category has blogs
   const category = await prisma.category.findUnique({
     where: { id: parseInt(id) },
     include: {
@@ -41,17 +41,14 @@ export const deleteCategory = async (id) => {
   });
 
   if (!category) {
-    const error = new Error("Không tìm thấy danh mục");
-    error.statusCode = 404;
-    throw error;
+    throw new CustomError(404, "Không tìm thấy danh mục");
   }
 
   if (category._count.blogs > 0) {
-    const error = new Error(
+    throw new CustomError(
+      400,
       `Không thể xóa danh mục này vì đang có ${category._count.blogs} bài viết sử dụng`,
     );
-    error.statusCode = 400;
-    throw error;
   }
 
   await prisma.category.delete({

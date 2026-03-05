@@ -4,6 +4,7 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import { prisma } from "../lib/prisma.js";
 import { sendVerificationEmail, sendWelcomeEmail } from "../mail/emails.js";
+import CustomError from "../config/Custom-error.js";
 
 dotenv.config();
 const ACCESS_TOKEN_TTL = "30m";
@@ -19,13 +20,9 @@ export const signUpUser = async ({ username, password, email, fullname }) => {
 
   if (existingUser) {
     if (existingUser.username === username) {
-      const error = new Error("Username đã tồn tại");
-      error.statusCode = 409;
-      throw error;
+      throw new CustomError(409, "Username đã tồn tại");
     }
-    const error = new Error("Email đã tồn tại");
-    error.statusCode = 409;
-    throw error;
+    throw new CustomError(409, "Email đã tồn tại");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -67,9 +64,7 @@ export const verifyEmailToken = async (token) => {
   });
 
   if (!user) {
-    const error = new Error("Link xác thực không hợp lệ hoặc đã hết hạn");
-    error.statusCode = 400;
-    throw error;
+    throw new CustomError(400, "Link xác thực không hợp lệ hoặc đã hết hạn");
   }
 
   await prisma.user.update({
@@ -104,24 +99,19 @@ export const signInUser = async (email, password) => {
   });
 
   if (!user) {
-    const error = new Error("Email hoặc password không chính xác");
-    error.statusCode = 401;
-    throw error;
+    throw new CustomError(401, "Email hoặc password không chính xác");
   }
   if (!user.verified) {
-    const error = new Error(
+    throw new CustomError(
+      403,
       "Vui lòng xác thực email trước khi đăng nhập. Kiểm tra hộp thư của bạn.",
     );
-    error.statusCode = 403;
-    throw error;
   }
 
   const passwordCorrect = await bcrypt.compare(password, user.password);
 
   if (!passwordCorrect) {
-    const error = new Error("Email hoặc password không chính xác");
-    error.statusCode = 401;
-    throw error;
+    throw new CustomError(401, "Email hoặc password không chính xác");
   }
 
   const accessToken = jwt.sign(
@@ -171,21 +161,15 @@ export const refreshAccessToken = async (refreshToken) => {
   });
 
   if (!session) {
-    const error = new Error("Token không hợp lệ hoặc đã hết hạn");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Token không hợp lệ hoặc đã hết hạn");
   }
 
   if (session.revoked_at) {
-    const error = new Error("Token đã bị thu hồi.");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Token đã bị thu hồi.");
   }
 
   if (session.expires_at < new Date()) {
-    const error = new Error("Token đã hết hạn.");
-    error.statusCode = 403;
-    throw error;
+    throw new CustomError(403, "Token đã hết hạn.");
   }
 
   const accessToken = jwt.sign(
@@ -205,17 +189,13 @@ export const googleAuthUser = async (firebaseToken) => {
     decodedToken = await admin.default.auth().verifyIdToken(firebaseToken);
   } catch (error) {
     console.error("Firebase token verification failed:", error);
-    const err = new Error("Token Google không hợp lệ.");
-    err.statusCode = 401;
-    throw err;
+    throw new CustomError(401, "Token Google không hợp lệ.");
   }
 
   const { email, name, picture, uid } = decodedToken;
 
   if (!email) {
-    const error = new Error("Không thể lấy email từ tài khoản Google.");
-    error.statusCode = 400;
-    throw error;
+    throw new CustomError(400, "Không thể lấy email từ tài khoản Google.");
   }
 
   let user = await prisma.user.findFirst({
@@ -227,11 +207,10 @@ export const googleAuthUser = async (firebaseToken) => {
 
   if (user) {
     if (!user.google_auth) {
-      const error = new Error(
+      throw new CustomError(
+        409,
         "Email này đã được đăng ký bằng mật khẩu. Vui lòng đăng nhập bằng email/password.",
       );
-      error.statusCode = 409;
-      throw error;
     }
   } else {
     const username = email.split("@")[0] + "_" + uid.substring(0, 6);

@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import cloudinary from "../config/cloudinary.config.js";
+import CustomError from "../config/Custom-error.js";
 
 export const getAuthenticatedUser = async (user) => {
   const socialLinks = await prisma.userSocialLinks.findUnique({
@@ -45,9 +46,7 @@ export const updateUserProfile = async (userId, data, file) => {
       },
     });
     if (existing) {
-      const error = new Error("Username đã được sử dụng.");
-      error.statusCode = 409;
-      throw error;
+      throw new CustomError(409, "Username đã được sử dụng.");
     }
     updateData.username = data.username.trim().toLowerCase();
   }
