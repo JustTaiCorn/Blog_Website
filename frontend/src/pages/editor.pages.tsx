@@ -1,10 +1,7 @@
-import {useState} from "react";
-import {BlogEditorComponent} from "@/components/blog-editor.component.tsx";
-import PublishFormComponent from "@/components/publish-form.component.tsx";
+import { useParams } from "react-router-dom";
+import { BlogEditorComponent } from "@/components/blog-editor.component.tsx";
 
 export const EditorPages = () => {
-    const [editorState, setEditorState] = useState("editing");
-  return (
-      editorState === "editing" ? <BlogEditorComponent/> : <PublishFormComponent/>
-  );
-}
+  const { blog_id } = useParams<{ blog_id?: string }>();
+  return <BlogEditorComponent blogId={blog_id} />;
+};

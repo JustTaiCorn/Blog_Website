@@ -91,6 +91,24 @@ export const blogService = {
     }>(`/blogs?page=${page}&limit=${limit}&sort=${sort}`);
     return res.data;
   },
+
+  delete: async (blog_id: string): Promise<{ message: string }> => {
+    const res = await api.delete<{ message: string }>(`/blogs/${blog_id}`);
+    return res.data;
+  },
+
+  getMyBlogs: async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    blogs: Blog[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> => {
+    const res = await api.get(`/blogs/my-blogs?page=${page}&limit=${limit}`);
+    return res.data;
+  },
 };
 
 // React Query Hooks
@@ -183,6 +201,30 @@ export const useUpdateBlog = () => {
       const errorMessage = error.response?.data?.message || "Cập nhật thất bại";
       toast.error(errorMessage);
     },
+  });
+};
+
+export const useDeleteBlog = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (blog_id: string) => blogService.delete(blog_id),
+    onSuccess: () => {
+      toast.success("Xoá bài viết thành công!");
+      queryClient.invalidateQueries({ queryKey: ["my-blogs"] });
+      queryClient.invalidateQueries({ queryKey: ["blogs"] });
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.message || "Xoá bài viết thất bại";
+      toast.error(errorMessage);
+    },
+  });
+};
+
+export const useMyBlogs = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ["my-blogs", page, limit],
+    queryFn: () => blogService.getMyBlogs(page, limit),
   });
 };
 

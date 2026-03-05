@@ -11,10 +11,12 @@ import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor
 import {
   useUploadBanner,
   useCreateBlog,
+  useUpdateBlog,
+  useFetchBlog,
   useBlogCategories,
   useBlogTags,
 } from "@/services/blogService";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -50,6 +52,7 @@ interface BlogEditorNavbarProps {
   onPublish: () => void;
   onSaveDraft: () => void;
   isSubmitting?: boolean;
+  isEditMode?: boolean;
 }
 
 export const BlogEditorNavbar = ({
@@ -57,6 +60,7 @@ export const BlogEditorNavbar = ({
   onPublish,
   onSaveDraft,
   isSubmitting = false,
+  isEditMode = false,
 }: BlogEditorNavbarProps) => {
   const navigate = useNavigate();
 
@@ -92,7 +96,11 @@ export const BlogEditorNavbar = ({
               disabled={isSubmitting}
               className="px-4 py-2"
             >
-              {isSubmitting ? "Processing..." : "Publish"}
+              {isSubmitting
+                ? "Processing..."
+                : isEditMode
+                  ? "Update"
+                  : "Publish"}
             </Button>
           </div>
         </div>
@@ -101,10 +109,20 @@ export const BlogEditorNavbar = ({
   );
 };
 
-export const BlogEditorComponent = () => {
+interface BlogEditorComponentProps {
+  blogId?: string;
+}
+
+export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
   const navigate = useNavigate();
   const uploadBannerMutation = useUploadBanner();
   const createBlogMutation = useCreateBlog();
+  const updateBlogMutation = useUpdateBlog();
+  const isEditMode = !!blogId;
+
+  const { data: blogData, isLoading: isBlogLoading } = useFetchBlog(
+    blogId || "",
+  );
 
   const { data: categories = [] } = useBlogCategories();
   const { data: existingTags = [] } = useBlogTags();
@@ -113,7 +131,7 @@ export const BlogEditorComponent = () => {
   const [tagInput, setTagInput] = useState("");
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
 
-  const { register, handleSubmit, control, watch, setValue } =
+  const { register, handleSubmit, control, watch, setValue, reset } =
     useForm<BlogFormValues>({
       defaultValues: {
         title: "",
@@ -125,6 +143,27 @@ export const BlogEditorComponent = () => {
         tags: [],
       },
     });
+
+  // Populate form when editing an existing blog
+  useEffect(() => {
+    if (isEditMode && blogData?.blog) {
+      const blog = blogData.blog;
+      reset({
+        title: blog.title || "",
+        content: blog.content || { blocks: [] },
+        banner: blog.banner || null,
+        bannerFile: null,
+        des: blog.des || "",
+        category_id: blog.category_id ? blog.category_id.toString() : "",
+        tags:
+          blog.tags?.map((t: any) => t.tag?.name || t.name).filter(Boolean) ||
+          [],
+      });
+      if (blog.banner) {
+        setPreviewBanner(blog.banner);
+      }
+    }
+  }, [isEditMode, blogData, reset]);
 
   const title = watch("title");
   const selectedTags = watch("tags");
@@ -172,24 +211,35 @@ export const BlogEditorComponent = () => {
         );
         finalBanner = uploadRes.url;
       }
-      createBlogMutation.mutate(
-        {
-          title: values.title,
-          content: values.content,
-          banner: finalBanner,
-          des: values.des,
-          category_id: values.category_id ? parseInt(values.category_id) : null,
-          tags: values.tags,
-          draft: isDraft,
-        },
-        {
+
+      const payload = {
+        title: values.title,
+        content: values.content,
+        banner: finalBanner,
+        des: values.des,
+        category_id: values.category_id ? parseInt(values.category_id) : null,
+        tags: values.tags,
+        draft: isDraft,
+      };
+
+      if (isEditMode && blogId) {
+        updateBlogMutation.mutate(
+          { blog_id: blogId, data: payload },
+          {
+            onSuccess: (res) => {
+              navigate(`/blog/${res.blog_id}`);
+            },
+          },
+        );
+      } else {
+        createBlogMutation.mutate(payload, {
           onSuccess: (res) => {
             if (!isDraft) {
               navigate(`/blog/${res.blog_id}`);
             }
           },
-        },
-      );
+        });
+      }
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -204,7 +254,17 @@ export const BlogEditorComponent = () => {
     }
   };
   const isSubmittingLocal =
-    uploadBannerMutation.isPending || createBlogMutation.isPending;
+    uploadBannerMutation.isPending ||
+    createBlogMutation.isPending ||
+    updateBlogMutation.isPending;
+
+  if (isEditMode && isBlogLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner className="w-8 h-8 text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -220,10 +280,11 @@ export const BlogEditorComponent = () => {
       )}
 
       <BlogEditorNavbar
-        title={title || "New Blog"}
+        title={title || (isEditMode ? "Edit Blog" : "New Blog")}
         onPublish={handleSubmit((data) => onSubmit(data, false))}
         onSaveDraft={handleSubmit((data) => onSubmit(data, true))}
         isSubmitting={isSubmittingLocal}
+        isEditMode={isEditMode}
       />
 
       <AnimationWrapper>

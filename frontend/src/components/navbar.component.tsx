@@ -7,6 +7,7 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
+  FileText,
 } from "lucide-react";
 import logo from "@/imgs/logo.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -96,6 +97,12 @@ const Navbar = () => {
                       <Link to="/editor" className="flex items-center gap-2">
                         <PenSquare className="w-4 h-4" />
                         Write
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/my-blogs" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        My Blogs
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="cursor-pointer">

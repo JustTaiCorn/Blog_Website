@@ -14,6 +14,7 @@ import BlogPage from "@/pages/blog.page.tsx";
 import ProtectedRoute from "@/components/auth/ProtectedRoute.tsx";
 import { EditorPages } from "@/pages/editor.pages.tsx";
 import ProfilePage from "@/pages/profile.page";
+import MyBlogsPage from "@/pages/my-blogs.page";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
 
@@ -65,6 +66,8 @@ function App() {
         {/*    */}
         <Route element={<ProtectedRoute />}>
           <Route path="/editor" element={<EditorPages />} />
+          <Route path="/editor/:blog_id" element={<EditorPages />} />
+          <Route path="/my-blogs" element={<MyBlogsPage />} />
           <Route path="/settings/profile" element={<ProfilePage />} />
         </Route>
 

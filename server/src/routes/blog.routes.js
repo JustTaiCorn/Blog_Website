@@ -5,13 +5,10 @@ import * as blogController from "../controllers/blog.controller.js";
 
 const router = express.Router();
 
-// Public routes
 router.get("/", optionalAuth, blogController.getAllBlogs);
 router.get("/categories/all", blogController.getCategories);
 router.get("/tags/all", blogController.getTags);
-router.get("/:blog_id", blogController.getBlog);
-
-// Protected routes
+router.get("/my-blogs", protectedRoute, blogController.getMyBlogs);
 router.post("/create", protectedRoute, blogController.createBlog);
 router.post(
   "/upload-banner",
@@ -26,5 +23,8 @@ router.post(
   blogController.uploadImage,
 );
 router.put("/update/:blog_id", protectedRoute, blogController.updateBlog);
+router.delete("/:blog_id", protectedRoute, blogController.deleteBlog);
+
+router.get("/:blog_id", blogController.getBlog);
 
 export default router;

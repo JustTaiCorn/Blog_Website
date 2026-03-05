@@ -367,10 +367,90 @@ export const getTags = async (req, res) => {
         name: true,
       },
     });
-    // Return array of strings for tags
     res.status(200).json({ tags: tags.map((t) => t.name) });
   } catch (error) {
     console.error("Error in getTags:", error);
     res.status(500).json({ message: "Lỗi khi lấy tags" });
+  }
+};
+
+// Delete Blog
+export const deleteBlog = async (req, res) => {
+  try {
+    const { blog_id } = req.params;
+    const author_id = req.user.id;
+
+    const blog = await prisma.blog.findUnique({
+      where: { blog_id },
+    });
+
+    if (!blog) {
+      return res.status(404).json({ message: "Không tìm thấy blog" });
+    }
+
+    if (blog.author_id !== author_id) {
+      return res
+        .status(403)
+        .json({ message: "Bạn không có quyền xoá blog này" });
+    }
+
+    await prisma.blog.delete({
+      where: { blog_id },
+    });
+
+    // Decrement user total_posts
+    await prisma.user.update({
+      where: { id: author_id },
+      data: { total_posts: { decrement: 1 } },
+    });
+
+    res.status(200).json({ message: "Xoá blog thành công" });
+
+    // Invalidate caches
+    await deleteCache(`blogs:detail:${blog_id}`);
+    await deleteCacheByPattern("blogs:list:*");
+  } catch (error) {
+    console.error("Error in deleteBlog:", error);
+    res.status(500).json({ message: "Lỗi khi xoá blog", error: error.message });
+  }
+};
+
+// Get My Blogs (authenticated user's blogs)
+export const getMyBlogs = async (req, res) => {
+  try {
+    const author_id = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const take = parseInt(limit);
+
+    const [blogs, total] = await Promise.all([
+      prisma.blog.findMany({
+        where: { author_id },
+        include: {
+          category: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+        orderBy: { created_at: "desc" },
+        skip,
+        take,
+      }),
+      prisma.blog.count({ where: { author_id } }),
+    ]);
+
+    res.status(200).json({
+      blogs,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / take),
+    });
+  } catch (error) {
+    console.error("Error in getMyBlogs:", error);
+    res
+      .status(500)
+      .json({ message: "Lỗi khi lấy danh sách blog", error: error.message });
   }
 };
