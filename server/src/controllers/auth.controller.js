@@ -83,7 +83,11 @@ export const signOut = async (req, res, next) => {
     await signOutUser(token);
 
     if (token) {
-      res.clearCookie("refreshToken");
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
     }
 
     return res.status(204).send();

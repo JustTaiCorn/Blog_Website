@@ -27,8 +27,6 @@ const initFirebaseAdmin = () => {
     );
     return;
   }
-
-  // Avoid double-initialization in hot-reload / tests.
   if (admin.apps?.length) return;
 
   let serviceAccount = null;
@@ -49,7 +47,9 @@ const initFirebaseAdmin = () => {
 
     if (fs.existsSync(serviceAccountPath)) {
       try {
-        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+        serviceAccount = JSON.parse(
+          fs.readFileSync(serviceAccountPath, "utf8"),
+        );
       } catch {
         console.warn(
           `Could not read Firebase service account from ${serviceAccountPath}. Firebase Admin not initialized.`,
@@ -83,9 +83,17 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
