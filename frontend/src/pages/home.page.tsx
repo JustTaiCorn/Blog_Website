@@ -12,7 +12,6 @@ import {
 import NoDataMessage from "@/components/nodata.component";
 import LoadMoreBtn from "@/components/load-more.component";
 import BlogFilterBar from "@/components/blog-filter-bar.component";
-import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { getDay } from "@/common/date";
 
@@ -29,9 +28,7 @@ export default function HomePage() {
   const { data: categories = [] } = useBlogCategories();
   const { data: trendingData } = useTrendingBlogs();
   const trendingBlogs = trendingData?.blogs ?? [];
-
-  if (isLoading) return <Loader />;
-
+  const allBlogs = data?.pages?.flatMap((page) => page.blogs ?? []) ?? [];
   return (
     <AnimationWrapper>
       <section className="h-cover flex justify-center gap-10 px-5 max-w-[1200px] mx-auto">
@@ -46,27 +43,26 @@ export default function HomePage() {
               onFilterChange={handleFilterChange}
             />
           </div>
-
-          {data?.pages[0].blogs.length ? (
+          {isLoading ? (
+            <Loader />
+          ) : allBlogs.length > 0 ? (
             <>
-              {data.pages.map((page: any, i: number) => (
-                <Fragment key={i}>
-                  {page.blogs.map((blog: any, index: number) => (
-                    <AnimationWrapper
-                      key={blog.blog_id}
-                      transition={{ duration: 1, delay: index * 0.1 }}
-                    >
-                      <BlogPostCard content={blog} author={blog.author} />
-                    </AnimationWrapper>
-                  ))}
-                </Fragment>
+              {allBlogs.map((blog: any, index: number) => (
+                <AnimationWrapper
+                  key={blog.blog_id || blog.$id}
+                  transition={{ duration: 1, delay: index * 0.1 }}
+                >
+                  <BlogPostCard content={blog} author={blog.author} />
+                </AnimationWrapper>
               ))}
 
-              <LoadMoreBtn
-                hasNextPage={hasNextPage}
-                fetchDataFun={fetchNextPage}
-                isFetching={isFetchingNextPage}
-              />
+              {hasNextPage && (
+                <LoadMoreBtn
+                  hasNextPage={hasNextPage}
+                  fetchDataFun={fetchNextPage}
+                  isFetching={isFetchingNextPage}
+                />
+              )}
             </>
           ) : (
             <NoDataMessage message="Không tìm thấy bài viết nào" />
