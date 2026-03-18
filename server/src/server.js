@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import dotenv from "dotenv";
@@ -14,15 +15,65 @@ import adminRouter from "./routes/admin/index.js";
 import interactionRouter from "./routes/interaction.routes.js";
 import errorHandler from "./config/errorHandler.js";
 import admin from "firebase-admin";
-import serviceAccount from "../serviceAccountKey.json" with { type: "json" };
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const initFirebaseAdmin = () => {
+  if (process.env.FIREBASE_DISABLED === "true") {
+    console.warn(
+      "Firebase Admin disabled (FIREBASE_DISABLED=true). Google auth endpoints will not work.",
+    );
+    return;
+  }
+
+  // Avoid double-initialization in hot-reload / tests.
+  if (admin.apps?.length) return;
+
+  let serviceAccount = null;
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } catch {
+      console.warn(
+        "Invalid FIREBASE_SERVICE_ACCOUNT_JSON. Firebase Admin not initialized.",
+      );
+      return;
+    }
+  } else {
+    const serviceAccountPath =
+      process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+      path.join(__dirname, "..", "serviceAccountKey.json");
+
+    if (fs.existsSync(serviceAccountPath)) {
+      try {
+        serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+      } catch {
+        console.warn(
+          `Could not read Firebase service account from ${serviceAccountPath}. Firebase Admin not initialized.`,
+        );
+        return;
+      }
+    } else {
+      console.warn(
+        `Firebase service account not found at ${serviceAccountPath}. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_SERVICE_ACCOUNT_JSON (or FIREBASE_DISABLED=true).`,
+      );
+      return;
+    }
+  }
+
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (err) {
+    console.warn("Failed to initialize Firebase Admin:", err);
+  }
+};
+
+initFirebaseAdmin();
 
 const debug = Debug("server:server");
 const app = express();

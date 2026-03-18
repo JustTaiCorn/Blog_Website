@@ -1,12 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Gelasio:wght@400;500;600;700&display=swap");
-@import './styles/_variables.scss';
-@import './styles/_keyframe-animations.scss';
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "./styles/_variables.scss";
+@import "./styles/_keyframe-animations.scss";
 
 @import "tailwindcss";
 @import "tw-animate-css";
 
 body {
-  font-family: "Gelasio", serif;
+  font-family: "Inter", sans-serif;
 }
 @custom-variant dark (&:is(.dark *));
 

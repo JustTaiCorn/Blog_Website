@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateCategory } from "@/services/admin-services/categoryService";
+import { useCreateCategory } from "@/hooks/admin/useCategory";
 
 interface AddCategoryModalProps {
   open: boolean;

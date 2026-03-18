@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUpdateTag, type Tag } from "@/services/admin-services/tagService";
+import { useUpdateTag, type Tag } from "@/hooks/admin/useTag";
 
 interface EditTagModalProps {
   open: boolean;

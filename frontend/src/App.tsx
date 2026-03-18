@@ -15,6 +15,8 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute.tsx";
 import { EditorPages } from "@/pages/editor.pages.tsx";
 import ProfilePage from "@/pages/profile.page";
 import MyBlogsPage from "@/pages/my-blogs.page";
+import SearchPage from "@/pages/search.page";
+import CategoryPage from "@/pages/category.page";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
 
@@ -62,6 +64,8 @@ function App() {
       {/* Routes với Navbar */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/category/:slug" element={<CategoryPage />} />
         <Route path="/blog/:blog_id" element={<BlogPage />} />
         {/*    */}
         <Route element={<ProtectedRoute />}>

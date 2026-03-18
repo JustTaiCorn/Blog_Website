@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useComments, useAddComment } from "@/services/commentService";
+import { useComments, useAddComment } from "@/hooks/useComment";
 import CommentCard from "./comment-card.component";
 import CommentField from "./comment-field.component";
 import Loader from "./loader.component";

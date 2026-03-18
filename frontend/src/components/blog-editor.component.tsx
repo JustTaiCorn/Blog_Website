@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import AnimationWrapper from "@/common/page-animation";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import defaultimage from "../imgs/blog banner.png";
 import { Textarea } from "./ui/textarea";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 import {
@@ -15,7 +14,7 @@ import {
   useFetchBlog,
   useBlogCategories,
   useBlogTags,
-} from "@/services/blogService";
+} from "@/hooks/useBlog";
 import { useState, useEffect } from "react";
 import {
   Select,
@@ -301,11 +300,13 @@ export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
                 className="hidden"
                 onChange={handleImageChange}
               />
-              <img
-                src={previewBanner || defaultimage}
-                alt="Blog Banner"
-                className="w-full h-full object-cover"
-              />
+              {previewBanner && (
+                <img
+                  src={previewBanner}
+                  alt="Blog Banner"
+                  className="w-full h-full object-cover border border-black ring-2 ring-black"
+                />
+              )}
               {!previewBanner && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="flex flex-col items-center gap-2">

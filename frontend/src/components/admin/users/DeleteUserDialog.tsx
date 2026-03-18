@@ -8,25 +8,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeleteTag, type Tag } from "@/hooks/admin/useTag";
+import { type AdminUser, useDeleteUser } from "@/hooks/admin/useUserManagement";
 
-interface DeleteTagDialogProps {
+interface DeleteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  tag: Tag | null;
+  user: AdminUser | null;
 }
 
-export default function DeleteTagDialog({
+export default function DeleteUserDialog({
   open,
   onOpenChange,
-  tag,
-}: DeleteTagDialogProps) {
-  const deleteTagMutation = useDeleteTag();
+  user,
+}: DeleteUserDialogProps) {
+  const deleteUserMutation = useDeleteUser();
 
   const handleDelete = async () => {
-    if (!tag) return;
+    if (!user) return;
 
-    deleteTagMutation.mutate(tag.id, {
+    deleteUserMutation.mutate(user.id, {
       onSuccess: () => {
         onOpenChange(false);
       },
@@ -37,22 +37,22 @@ export default function DeleteTagDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Xác nhận xóa tag</AlertDialogTitle>
+          <AlertDialogTitle>Xác nhận xóa người dùng</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn có chắc chắn muốn xóa tag "{tag?.name}"? Hành động này không thể
-            hoàn tác.
+            Bạn có chắc chắn muốn xóa tài khoản của người dùng "{user?.fullname}" (@{user?.username})? Hành động này
+            không thể hoàn tác.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteTagMutation.isPending}>
+          <AlertDialogCancel disabled={deleteUserMutation.isPending}>
             Hủy
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
-            disabled={deleteTagMutation.isPending}
-            className="bg-red-600 hover:bg-red-700"
+            disabled={deleteUserMutation.isPending}
+            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
-            {deleteTagMutation.isPending ? "Đang xóa..." : "Xóa"}
+            {deleteUserMutation.isPending ? "Đang xóa..." : "Xóa"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

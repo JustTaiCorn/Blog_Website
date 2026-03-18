@@ -9,9 +9,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  useDeleteCategory,
   type Category,
 } from "@/services/admin-services/categoryService";
+import {useDeleteCategory} from "@/hooks/admin/useCategory.ts";
 
 interface DeleteCategoryDialogProps {
   open: boolean;

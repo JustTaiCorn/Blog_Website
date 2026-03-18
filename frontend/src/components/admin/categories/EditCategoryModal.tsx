@@ -11,11 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  useUpdateCategory,
-  type Category,
-} from "@/services/admin-services/categoryService";
-
+import type {Category} from "@/services/admin-services/categoryService.ts";
+import {useUpdateCategory} from "@/hooks/admin/useCategory.ts";
 interface EditCategoryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

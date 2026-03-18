@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateTag } from "@/services/admin-services/tagService";
+import { useCreateTag } from "@/hooks/admin/useTag";
 
 interface AddTagModalProps {
   open: boolean;

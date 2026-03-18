@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMyBlogs, useDeleteBlog } from "@/services/blogService";
+import { useMyBlogs, useDeleteBlog } from "@/hooks/useBlog";
 import type { Blog } from "@/types/entities";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";

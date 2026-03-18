@@ -6,7 +6,7 @@ import {
   useAddReply,
   useDeleteComment,
   useToggleCommentLike,
-} from "@/services/commentService";
+} from "@/hooks/useComment";
 import CommentField from "./comment-field.component";
 import { getDay } from "@/common/date.tsx";
 

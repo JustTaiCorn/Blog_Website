@@ -1,0 +1,19 @@
+FROM node:20-bookworm
+
+WORKDIR /app
+
+# Install dependencies first for better layer caching.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Prisma client generation doesn't require a live DB connection.
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Copy the rest of the source (used when running without bind-mounts).
+COPY . .
+
+EXPOSE 8080
+
+CMD ["node", "./src/server.js"]
+

@@ -62,7 +62,6 @@ const useBlogsByCategory = () =>
     queryFn: async () => (await api.get("/admin/stats/blogs-by-category")).data,
   });
 
-// --- Chart Configs ---
 
 const barChartConfig = {
   count: {

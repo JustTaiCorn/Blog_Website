@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { nanoid } from "nanoid";
 import { generateSlug } from "../utils/utils.js";
+import { parseISO, startOfDay, endOfDay } from "date-fns";
 import {
   getCache,
   setCache,
@@ -183,11 +184,56 @@ export const getBlogById = async (blogId) => {
 };
 
 export const getAllPublishedBlogs = async (query, user) => {
-  const { page = 1, limit = 10, sort = "desc" } = query;
+  const {
+    page = 1,
+    limit = 10,
+    sort = "desc",
+    sortBy = "date",
+    category,
+    dateFrom,
+    dateTo,
+  } = query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const take = parseInt(limit);
   const orderDirection = sort === "asc" ? "asc" : "desc";
-  const cacheKey = `blogs:list:page=${page}:limit=${limit}:sort=${sort}`;
+
+  // Build where clause
+  const where = {
+    draft: false,
+    published: true,
+  };
+
+  // Filter by category slug
+  if (category) {
+    where.category = { slug: category };
+  }
+
+  // Filter by date range using date-fns
+  if (dateFrom || dateTo) {
+    where.published_at = {};
+    if (dateFrom) {
+      where.published_at.gte = startOfDay(parseISO(dateFrom));
+    }
+    if (dateTo) {
+      where.published_at.lte = endOfDay(parseISO(dateTo));
+    }
+  }
+
+  let orderBy;
+  switch (sortBy) {
+    case "views":
+      orderBy = { activity_total_reads: orderDirection };
+      break;
+    case "likes":
+      orderBy = { activity_total_likes: orderDirection };
+      break;
+    case "date":
+    default:
+      orderBy = { published_at: orderDirection };
+      break;
+  }
+
+  const cacheKey = `blogs:list:page=${page}:limit=${limit}:sort=${sort}:sortBy=${sortBy}:cat=${category || "all"}:from=${dateFrom || ""}&to=${dateTo || ""}`;
 
   if (!user) {
     const cachedData = await getCache(cacheKey);
@@ -198,10 +244,7 @@ export const getAllPublishedBlogs = async (query, user) => {
 
   const [blogs, total] = await Promise.all([
     prisma.blog.findMany({
-      where: {
-        draft: false,
-        published: true,
-      },
+      where,
       include: {
         author: {
           select: {
@@ -210,19 +253,18 @@ export const getAllPublishedBlogs = async (query, user) => {
             profile_img: true,
           },
         },
+        category: { select: { id: true, name: true, slug: true } },
         tags: {
           include: {
             tag: true,
           },
         },
       },
-      orderBy: {
-        published_at: orderDirection,
-      },
+      orderBy,
       skip,
       take,
     }),
-    prisma.blog.count({ where: { draft: false, published: true } }),
+    prisma.blog.count({ where }),
   ]);
 
   let serializedBlogs = blogs.map((blog) => ({ ...blog, liked: false }));
@@ -313,6 +355,55 @@ export const getMyBlogs = async (authorId, query) => {
   };
 };
 
+export const searchBlogs = async ({ q, page = 1, limit = 10 }) => {
+  const parsedPage = parseInt(page);
+  const parsedLimit = parseInt(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  if (!q || q.trim().length === 0) {
+    return { blogs: [], total: 0, page: parsedPage, totalPages: 0 };
+  }
+
+  const where = {
+    draft: false,
+    published: true,
+    OR: [
+      { title: { contains: q, mode: "insensitive" } },
+      { des: { contains: q, mode: "insensitive" } },
+    ],
+  };
+
+  const [blogs, total] = await Promise.all([
+    prisma.blog.findMany({
+      where,
+      include: {
+        author: {
+          select: {
+            fullname: true,
+            username: true,
+            profile_img: true,
+          },
+        },
+        category: true,
+        tags: {
+          include: { tag: true },
+        },
+      },
+      orderBy: { published_at: "desc" },
+      skip,
+      take: parsedLimit,
+    }),
+    prisma.blog.count({ where }),
+  ]);
+
+  return {
+    blogs,
+    total,
+    page: parsedPage,
+    totalPages: Math.ceil(total / parsedLimit),
+  };
+};
+
 export const getAllCategories = async () => {
   return prisma.category.findMany({
     select: {
@@ -330,4 +421,28 @@ export const getAllTags = async () => {
     },
   });
   return tags.map((t) => t.name);
+};
+
+export const getTrendingBlogs = async () => {
+  const cacheKey = "blogs:trending";
+  const cached = await getCache(cacheKey);
+  if (cached) return cached;
+
+  const blogs = await prisma.blog.findMany({
+    where: { draft: false, published: true },
+    include: {
+      author: {
+        select: {
+          fullname: true,
+          username: true,
+          profile_img: true,
+        },
+      },
+    },
+    orderBy: { activity_total_reads: "desc" },
+    take: 5,
+  });
+
+  await setCache(cacheKey, blogs, 600); // cache 10 minutes
+  return blogs;
 };

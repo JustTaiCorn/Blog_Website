@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useFetchBlog } from "@/services/blogService";
+import { useFetchBlog } from "@/hooks/useBlog";
 import BlogContent from "@/components/blog-content.component";
 import BlogBreadcrumb from "@/components/blog-breadcrumb.component";
 import BlogInteraction from "@/components/blog-interaction.component";

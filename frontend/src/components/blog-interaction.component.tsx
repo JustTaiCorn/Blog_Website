@@ -1,5 +1,5 @@
 import { Heart } from "lucide-react";
-import { useLikeStatus, useToggleLike } from "@/services/blogService";
+import { useLikeStatus, useToggleLike } from "@/hooks/useBlog";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";

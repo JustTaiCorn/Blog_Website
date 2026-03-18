@@ -1,0 +1,23 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+dist
+build
+coverage
+
+.git
+.vscode
+.idea
+
+.env
+.env.*
+
+# Secrets: keep them out of images; mount via bind/env at runtime.
+serviceAccountKey.json
+firebase-key.json
+
+# Prisma client can be generated during image build; keep local artifacts out.
+src/generated
+

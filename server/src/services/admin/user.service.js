@@ -55,3 +55,25 @@ export const updateUserRole = async (userId, role, action) => {
     });
   }
 };
+
+export const deleteUser = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: parseInt(userId) },
+    include: {
+      roles: true,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError(404, "Không tìm thấy người dùng");
+  }
+
+  const isOwner = user.roles.some((r) => r.role === "OWNER");
+  if (isOwner) {
+    throw new CustomError(403, "Không thể xóa tài khoản OWNER");
+  }
+
+  await prisma.user.delete({
+    where: { id: parseInt(userId) },
+  });
+};

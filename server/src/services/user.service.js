@@ -52,7 +52,6 @@ export const updateUserProfile = async (userId, data, file) => {
   }
   if (data.bio !== undefined) updateData.bio = data.bio;
 
-  // Handle avatar upload
   if (file) {
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },

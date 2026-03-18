@@ -13,7 +13,7 @@ import { PencilIcon, Trash2Icon, PlusIcon, SearchIcon } from "lucide-react";
 import AddCategoryModal from "@/components/admin/categories/AddCategoryModal";
 import EditCategoryModal from "@/components/admin/categories/EditCategoryModal";
 import DeleteCategoryDialog from "@/components/admin/categories/DeleteCategoryDialog";
-import { useAllCategories, type Category } from "@/services/admin-services/categoryService";
+import { useAllCategories, type Category } from "@/hooks/admin/useCategory";
 
 export default function CategoryManagement() {
   const { data: categories = [], isLoading } = useAllCategories();

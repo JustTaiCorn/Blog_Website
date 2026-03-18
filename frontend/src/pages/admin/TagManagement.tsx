@@ -13,7 +13,7 @@ import { PencilIcon, Trash2Icon, PlusIcon, SearchIcon } from "lucide-react";
 import AddTagModal from "@/components/admin/tags/AddTagModal";
 import EditTagModal from "@/components/admin/tags/EditTagModal";
 import DeleteTagDialog from "@/components/admin/tags/DeleteTagDialog";
-import { useAllTags, type Tag } from "@/services/admin-services/tagService";
+import { useAllTags, type Tag } from "@/hooks/admin/useTag";
 
 export default function TagManagement() {
   const { data: tags = [], isLoading } = useAllTags();

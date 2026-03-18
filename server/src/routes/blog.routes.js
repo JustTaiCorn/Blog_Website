@@ -8,6 +8,7 @@ const router = express.Router();
 router.get("/", optionalAuth, blogController.getAllBlogs);
 router.get("/categories/all", blogController.getCategories);
 router.get("/tags/all", blogController.getTags);
+router.get("/search", blogController.searchBlogs);
 router.get("/my-blogs", protectedRoute, blogController.getMyBlogs);
 router.post("/create", protectedRoute, blogController.createBlog);
 router.post(
@@ -25,6 +26,7 @@ router.post(
 router.put("/update/:blog_id", protectedRoute, blogController.updateBlog);
 router.delete("/:blog_id", protectedRoute, blogController.deleteBlog);
 
+router.get("/trending", blogController.getTrendingBlogs);
 router.get("/:blog_id", blogController.getBlog);
 
 export default router;

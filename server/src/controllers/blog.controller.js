@@ -7,6 +7,8 @@ import {
   getMyBlogs as getMyBlogsService,
   getAllCategories as getCategoriesService,
   getAllTags as getTagsService,
+  searchBlogs as searchBlogsService,
+  getTrendingBlogs as getTrendingBlogsService,
 } from "../services/blog.service.js";
 import CustomError from "../config/Custom-error.js";
 
@@ -126,12 +128,33 @@ export const deleteBlog = async (req, res, next) => {
   }
 };
 
+// Search Blogs
+export const searchBlogs = async (req, res, next) => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
+    const result = await searchBlogsService({ q, page, limit });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get My Blogs (authenticated user's blogs)
 export const getMyBlogs = async (req, res, next) => {
   try {
     const result = await getMyBlogsService(req.user.id, req.query);
 
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get Trending Blogs
+export const getTrendingBlogs = async (req, res, next) => {
+  try {
+    const blogs = await getTrendingBlogsService();
+    res.status(200).json({ blogs });
   } catch (error) {
     next(error);
   }
