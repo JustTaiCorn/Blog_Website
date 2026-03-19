@@ -77,6 +77,7 @@ initFirebaseAdmin();
 
 const debug = Debug("server:server");
 const app = express();
+app.set("trust proxy", 1); // Bắt buộc khi deploy Render để sử dụng cookie liên miền
 const PORT = process.env.PORT || 8080;
 
 app.use(logger("dev"));
@@ -88,10 +89,15 @@ const allowedOrigins = ["http://localhost:5173", process.env.CLIENT_URL];
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        (process.env.CLIENT_URL &&
+          origin.startsWith(process.env.CLIENT_URL.replace(/\/$/, "")))
+      ) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
       }
     },
     credentials: true,
