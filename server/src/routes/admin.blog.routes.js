@@ -2,7 +2,7 @@ import express from "express";
 import {
   getAllBlogs,
   deleteBlog,
-} from "../../controllers/admin/blog.controller.js";
+} from "../controllers/admin/blog.controller.js";
 
 const router = express.Router();
 

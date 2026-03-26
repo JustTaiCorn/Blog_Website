@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
+import PermissionGuard from "@/components/guards/PermissionGuard";
+import { Permission } from "@/permissions/permissions";
 
 const Navbar = () => {
   const [searchBoxVisible, setSearchBoxVisible] = useState(false);
@@ -114,14 +116,14 @@ const Navbar = () => {
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    {user.roles?.some((r) => r.role === "ADMIN") && (
+                    <PermissionGuard permission={Permission.ADMIN_DASHBOARD}>
                       <DropdownMenuItem asChild className="cursor-pointer">
                         <Link to="/admin" className="flex items-center gap-2">
                           <LayoutDashboard className="w-4 h-4" />
                           Dashboard
                         </Link>
                       </DropdownMenuItem>
-                    )}
+                    </PermissionGuard>
                     <DropdownMenuItem asChild className="cursor-pointer">
                       <Link to="/settings" className="flex items-center gap-2">
                         <Settings className="w-4 h-4" />

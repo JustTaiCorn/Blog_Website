@@ -26,8 +26,6 @@ export const signUpUser = async ({ username, password, email, fullname }) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Tạo verification token
   const verificationToken = crypto.randomBytes(32).toString("hex");
   const verificationTokenExpiresAt = new Date(
     Date.now() + VERIFICATION_TOKEN_TTL,
@@ -42,7 +40,7 @@ export const signUpUser = async ({ username, password, email, fullname }) => {
       verification_token: verificationToken,
       verification_token_expires_at: verificationTokenExpiresAt,
       roles: {
-        create: { role: "USER" },
+        create: { role: { connect: { name: "USER" } } },
       },
     },
   });
@@ -94,7 +92,7 @@ export const signInUser = async (email, password) => {
       deleted: false,
     },
     include: {
-      roles: true,
+      roles: { include: { role: true } },
     },
   });
 
@@ -141,7 +139,7 @@ export const signInUser = async (email, password) => {
       fullname: user.fullname,
       profile_img: user.profile_img,
       bio: user.bio,
-      roles: user.roles,
+      roles: user.roles.map((ur) => ({ role: ur.role.name })),
     },
   };
 };
@@ -201,7 +199,7 @@ export const googleAuthUser = async (firebaseToken) => {
   let user = await prisma.user.findFirst({
     where: { email, deleted: false },
     include: {
-      roles: true,
+      roles: { include: { role: true } },
     },
   });
 
@@ -225,8 +223,11 @@ export const googleAuthUser = async (firebaseToken) => {
         verified: true,
         password: "",
         roles: {
-          create: { role: "USER" },
+          create: { role: { connect: { name: "USER" } } },
         },
+      },
+      include: {
+        roles: { include: { role: true } },
       },
     });
   }
@@ -258,7 +259,7 @@ export const googleAuthUser = async (firebaseToken) => {
       fullname: user.fullname,
       profile_img: user.profile_img,
       bio: user.bio,
-      roles: user.roles,
+      roles: user.roles.map((ur) => ({ role: ur.role.name })),
     },
   };
 };

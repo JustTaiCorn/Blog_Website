@@ -1,10 +1,10 @@
 import express from "express";
-import { protectedRoute, checkRole } from "../../middleware/auth.middleware.js";
-import userRoutes from "./user.routes.js";
+import { protectedRoute, checkRole } from "../middleware/auth.middleware.js";
+import dashboardRoutes from "./dashboard.routes.js";
+import userRoutes from "./admin.user.routes.js";
 import categoryRoutes from "./category.routes.js";
 import tagRoutes from "./tag.routes.js";
-import blogRoutes from "./blog.routes.js";
-import dashboardRoutes from "./dashboard.routes.js";
+import blogRoutes from "./admin.blog.routes.js";
 import commentRoutes from "./comment.routes.js";
 
 const router = express.Router();

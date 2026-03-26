@@ -2,9 +2,19 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import Loader from "@/components/loader.component.tsx";
+import type { Permission } from "@/permissions/permissions";
 
-const ProtectedRoute = () => {
-  const { accessToken,loading, refresh, fetchMe } = useAuthStore();
+interface ProtectedRouteProps {
+  requiredPermission?: Permission;
+  unauthorizedRedirect?: string;
+}
+
+const ProtectedRoute = ({
+  requiredPermission,
+  unauthorizedRedirect = "/",
+}: ProtectedRouteProps = {}) => {
+  const { accessToken, loading, refresh, fetchMe, hasPermission } =
+    useAuthStore();
   const [initializing, setInitializing] = useState(true);
 
   const init = async () => {
@@ -26,6 +36,7 @@ const ProtectedRoute = () => {
   useEffect(() => {
     init();
   }, []);
+
   if (initializing || loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -33,9 +44,14 @@ const ProtectedRoute = () => {
       </div>
     );
   }
+
   const currentToken = useAuthStore.getState().accessToken;
   if (!currentToken) {
     return <Navigate to="/signin" replace />;
+  }
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to={unauthorizedRedirect} replace />;
   }
 
   return <Outlet />;
