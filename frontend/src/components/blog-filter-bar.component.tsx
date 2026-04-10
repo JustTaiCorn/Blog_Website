@@ -6,8 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
 
 interface BlogFilterBarProps {
   filters: BlogFilterParams;
@@ -18,7 +16,6 @@ export default function BlogFilterBar({
   filters,
   onFilterChange,
 }: BlogFilterBarProps) {
-  // Derive combined sortKey from sort + sortBy
   const getSortKey = () => {
     if (filters.sortBy === "views") return "views";
     if (filters.sortBy === "likes") return "likes";
@@ -42,29 +39,8 @@ export default function BlogFilterBar({
     }
   };
 
-  const handleDateFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({
-      ...filters,
-      dateFrom: e.target.value || undefined,
-    });
-  };
-
-  const handleDateToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({
-      ...filters,
-      dateTo: e.target.value || undefined,
-    });
-  };
-
-  const handleReset = () => {
-    onFilterChange({});
-  };
-
-  const hasActiveFilters = filters.dateFrom || filters.dateTo || filters.sortBy;
-
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Sort */}
+    <div className="flex justify-end">
       <Select value={getSortKey()} onValueChange={handleSortChange}>
         <SelectTrigger className="w-[150px] h-9 text-sm">
           <SelectValue />
@@ -76,41 +52,6 @@ export default function BlogFilterBar({
           <SelectItem value="likes">Lượt thích</SelectItem>
         </SelectContent>
       </Select>
-
-      {/* Date From */}
-      <div className="flex items-center gap-1.5">
-        <label className="text-sm text-dark-grey whitespace-nowrap">Từ</label>
-        <input
-          type="date"
-          value={filters.dateFrom ?? ""}
-          onChange={handleDateFromChange}
-          className="h-9 px-2.5 text-sm border border-grey rounded-md outline-none focus:ring-1 focus:ring-black/20"
-        />
-      </div>
-
-      {/* Date To */}
-      <div className="flex items-center gap-1.5">
-        <label className="text-sm text-dark-grey whitespace-nowrap">Đến</label>
-        <input
-          type="date"
-          value={filters.dateTo ?? ""}
-          onChange={handleDateToChange}
-          className="h-9 px-2.5 text-sm border border-grey rounded-md outline-none focus:ring-1 focus:ring-black/20"
-        />
-      </div>
-
-      {/* Reset */}
-      {hasActiveFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleReset}
-          className="h-9 gap-1.5 text-sm text-dark-grey hover:text-black"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          Đặt lại
-        </Button>
-      )}
     </div>
   );
 }

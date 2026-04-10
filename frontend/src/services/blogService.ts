@@ -86,8 +86,6 @@ export const blogService = {
       sort?: "asc" | "desc";
       sortBy?: "date" | "views" | "likes";
       category?: string;
-      dateFrom?: string;
-      dateTo?: string;
     } = {},
   ) => {
     const searchParams = new URLSearchParams();
@@ -96,8 +94,6 @@ export const blogService = {
     searchParams.set("sort", params.sort ?? "desc");
     if (params.sortBy) searchParams.set("sortBy", params.sortBy);
     if (params.category) searchParams.set("category", params.category);
-    if (params.dateFrom) searchParams.set("dateFrom", params.dateFrom);
-    if (params.dateTo) searchParams.set("dateTo", params.dateTo);
     const res = await api.get<{
       blogs: Blog[];
       total: number;

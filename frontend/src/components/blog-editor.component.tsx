@@ -25,26 +25,30 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-import { z } from "zod";
+type BlogTagItem = {
+  tag?: { name?: string | null } | null;
+  name?: string | null;
+};
 
-const blogSchema = z.object({
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(100, "Title must be less than 100 characters"),
-  des: z
-    .string()
-    .max(200, "Description must be less than 200 characters")
-    .optional(),
-  content: z.any(),
-  banner: z.string().nullable().optional(),
-  bannerFile: z.instanceof(File).nullable().optional(),
-  category_id: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-});
+type BlogCategory = { id: number | string; name: string };
 
-type BlogFormValues = z.infer<typeof blogSchema>;
+type BlogFormValues = {
+  title: string;
+  des?: string;
+  content: unknown;
+  banner?: string | null;
+  bannerFile?: File | null;
+  category_id?: string;
+  tags: string[];
+};
 
 interface BlogEditorNavbarProps {
   title?: string;
@@ -155,8 +159,9 @@ export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
         des: blog.des || "",
         category_id: blog.category_id ? blog.category_id.toString() : "",
         tags:
-          blog.tags?.map((t: any) => t.tag?.name || t.name).filter(Boolean) ||
-          [],
+          blog.tags
+            ?.map((t: BlogTagItem) => t.tag?.name || t.name)
+            .filter((v): v is string => Boolean(v)) || [],
       });
       if (blog.banner) {
         setPreviewBanner(blog.banner);
@@ -165,6 +170,7 @@ export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
   }, [isEditMode, blogData, reset]);
 
   const title = watch("title");
+  const des = watch("des");
   const selectedTags = watch("tags");
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -266,7 +272,7 @@ export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen relative bg-gradient-to-b from-grey/20 via-white to-white">
       {isSubmittingLocal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4">
@@ -287,181 +293,266 @@ export const BlogEditorComponent = ({ blogId }: BlogEditorComponentProps) => {
       />
 
       <AnimationWrapper>
-        <section className="max-w-[900px] w-full mx-auto px-4 py-8">
-          <div className="relative aspect-video bg-white border-4 border-grey hover:opacity-75 cursor-pointer overflow-hidden group rounded-lg">
-            <Label
-              htmlFor="blogBanner"
-              className="cursor-pointer block h-full w-full"
-            >
-              <Input
-                type="file"
-                id="blogBanner"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-              {previewBanner && (
-                <img
-                  src={previewBanner}
-                  alt="Blog Banner"
-                  className="w-full h-full object-cover border border-black ring-2 ring-black"
-                />
-              )}
-              {!previewBanner && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <Plus className="w-12 h-12 text-gray-300" />
-                    <span className="text-gray-400 font-medium">
-                      Add Banner Image
-                    </span>
-                  </div>
-                </div>
-              )}
-              {uploadBannerMutation.isPending && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
-                  <Spinner className="w-8 h-8 text-white" />
-                </div>
-              )}
-            </Label>
+        <section className="max-w-[1200px] w-full mx-auto px-4 py-10">
+          <div className="mb-8">
+            <p className="text-sm text-dark-grey">
+              {isEditMode ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
+            </p>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              {isEditMode
+                ? "Hoàn thiện bài viết của bạn"
+                : "Bắt đầu viết điều hay"}
+            </h1>
           </div>
 
-          <Textarea
-            placeholder="Blog Title..."
-            className="text-4xl font-medium w-full mt-8 h-auto min-h-[60px] outline-none resize-none px-0 border-none focus-visible:ring-0 placeholder:text-gray-300"
-            {...register("title")}
-            rows={1}
-            onKeyDown={handleKeyDown}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = "auto";
-              target.style.height = target.scrollHeight + "px";
-            }}
-          />
-
-          <Textarea
-            placeholder="Write a short description about your blog..."
-            className="w-full h-24 resize-none leading-7 mt-4 outline-none border-none focus-visible:ring-0 placeholder:text-gray-300 font-gelasio text-lg"
-            {...register("des")}
-            maxLength={200}
-            onKeyDown={handleKeyDown}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Controller
-                control={control}
-                name="category_id"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a category..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category: any) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <div className="relative">
-                <Input
-                  placeholder="Add tags..."
-                  value={tagInput}
-                  onChange={(e) => {
-                    setTagInput(e.target.value);
-                    setShowTagSuggestions(true);
-                  }}
-                  onKeyDown={handleTagInputKeyDown}
-                  onFocus={() => setShowTagSuggestions(true)}
-                  onBlur={() =>
-                    setTimeout(() => setShowTagSuggestions(false), 300)
-                  }
-                  disabled={selectedTags.length >= 10}
-                />
-                {showTagSuggestions && tagInput && (
-                  <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                    {existingTags
-                      .filter(
-                        (tag: string) =>
-                          tag.toLowerCase().includes(tagInput.toLowerCase()) &&
-                          !selectedTags.includes(tag),
-                      )
-                      .map((tag: string) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
-                          onMouseDown={(e) => {
-                            // Prevent input blur before click registers
-                            e.preventDefault();
-                          }}
-                          onClick={() => {
-                            addTag(tag);
-                            setShowTagSuggestions(false);
-                          }}
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    {!existingTags.some(
-                      (tag: string) =>
-                        tag.toLowerCase() === tagInput.toLowerCase(),
-                    ) && (
-                      <div className="px-3 py-2 text-sm text-gray-500 italic">
-                        New tag: "{tagInput}"
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedTags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="hover:text-destructive focus:outline-none"
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-8">
+              <Card className="bg-white/80 backdrop-blur-sm border-grey/60 overflow-visible">
+                <CardContent className="px-5 md:px-6">
+                  <div className="relative aspect-video bg-grey/20 border border-grey/60 hover:border-black/20 hover:bg-grey/10 cursor-pointer overflow-hidden group rounded-xl">
+                    <Label
+                      htmlFor="blogBanner"
+                      className="cursor-pointer block h-full w-full"
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 text-right">
-                {selectedTags.length}/10 tags
-              </p>
+                      <Input
+                        type="file"
+                        id="blogBanner"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                      />
+                      {previewBanner && (
+                        <img
+                          src={previewBanner}
+                          alt="Blog Banner"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      {!previewBanner && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-grey/60 flex items-center justify-center group-hover:scale-105 transition-transform">
+                              <Plus className="w-7 h-7 text-dark-grey" />
+                            </div>
+                            <span className="text-dark-grey font-medium">
+                              Thêm ảnh bìa
+                            </span>
+                            <span className="text-xs text-dark-grey/70">
+                              Tỉ lệ khuyến nghị 16:9
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {uploadBannerMutation.isPending && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20">
+                          <Spinner className="w-8 h-8 text-white" />
+                        </div>
+                      )}
+                    </Label>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex items-end justify-between gap-4">
+                      <Label className="text-sm text-dark-grey">Tiêu đề</Label>
+                      <span className="text-xs text-dark-grey/70">
+                        {title?.length ?? 0}/100
+                      </span>
+                    </div>
+                    <Textarea
+                      placeholder="Nhập tiêu đề bài viết..."
+                      className="text-3xl md:text-4xl font-semibold w-full mt-2 h-auto min-h-[56px] outline-none resize-none px-0 border-none focus-visible:ring-0 placeholder:text-dark-grey/40"
+                      {...register("title")}
+                      rows={1}
+                      onKeyDown={handleKeyDown}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = "auto";
+                        target.style.height = target.scrollHeight + "px";
+                      }}
+                    />
+                  </div>
+
+                  <div className="mt-5">
+                    <div className="flex items-end justify-between gap-4">
+                      <Label className="text-sm text-dark-grey">
+                        Mô tả ngắn
+                      </Label>
+                      <span className="text-xs text-dark-grey/70">
+                        {des?.length ?? 0}/200
+                      </span>
+                    </div>
+                    <Textarea
+                      placeholder="Viết mô tả ngắn cho bài viết (tối đa 200 ký tự)..."
+                      className="w-full h-24 resize-none leading-7 mt-2 outline-none border-none focus-visible:ring-0 placeholder:text-dark-grey/40 font-gelasio text-lg"
+                      {...register("des")}
+                      maxLength={200}
+                      onKeyDown={handleKeyDown}
+                    />
+                  </div>
+
+                  <div className="w-full my-6 h-[1px] bg-grey/60" />
+
+                  <div className="prose prose-lg max-w-none">
+                    <Controller
+                      name="content"
+                      control={control}
+                      render={({ field }) => (
+                        <SimpleEditor
+                          initialContent={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
 
-          <div className="w-full my-6 h-[1px] bg-gray-100" />
+            <aside className="lg:col-span-4">
+              <div className="lg:sticky lg:top-24 space-y-6">
+                <Card className="bg-white/80 backdrop-blur-sm border-grey/60">
+                  <CardHeader className="border-b border-grey/40">
+                    <CardTitle className="text-sm font-semibold tracking-tight">
+                      Thiết lập bài viết
+                    </CardTitle>
+                    <CardDescription className="text-xs text-dark-grey">
+                      Hoàn thiện thông tin để bài viết dễ được tìm thấy.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-5 md:px-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Category</Label>
+                        <Controller
+                          control={control}
+                          name="category_id"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Chọn danh mục..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((category: BlogCategory) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id.toString()}
+                                  >
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
 
-          <div className="prose prose-lg max-w-none">
-            <Controller
-              name="content"
-              control={control}
-              render={({ field }) => (
-                <SimpleEditor
-                  initialContent={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
+                      <div className="space-y-2">
+                        <Label>Tags</Label>
+                        <div className="relative">
+                          <Input
+                            placeholder="Thêm tag..."
+                            value={tagInput}
+                            onChange={(e) => {
+                              setTagInput(e.target.value);
+                              setShowTagSuggestions(true);
+                            }}
+                            onKeyDown={handleTagInputKeyDown}
+                            onFocus={() => setShowTagSuggestions(true)}
+                            onBlur={() =>
+                              setTimeout(
+                                () => setShowTagSuggestions(false),
+                                300,
+                              )
+                            }
+                            disabled={selectedTags.length >= 10}
+                          />
+                          {showTagSuggestions && tagInput && (
+                            <div className="absolute top-full left-0 w-full mt-1 bg-white border border-grey/60 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                              {existingTags
+                                .filter(
+                                  (tag: string) =>
+                                    tag
+                                      .toLowerCase()
+                                      .includes(tagInput.toLowerCase()) &&
+                                    !selectedTags.includes(tag),
+                                )
+                                .map((tag: string) => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    className="w-full text-left px-3 py-2 hover:bg-grey/40 text-sm"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                    }}
+                                    onClick={() => {
+                                      addTag(tag);
+                                      setShowTagSuggestions(false);
+                                    }}
+                                  >
+                                    {tag}
+                                  </button>
+                                ))}
+                              {!existingTags.some(
+                                (tag: string) =>
+                                  tag.toLowerCase() === tagInput.toLowerCase(),
+                              ) && (
+                                <div className="px-3 py-2 text-sm text-dark-grey/70 italic">
+                                  Tag mới: "{tagInput}"
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedTags.map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTag(tag)}
+                                className="hover:text-destructive focus:outline-none"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <p className="text-xs text-dark-grey text-right">
+                          {selectedTags.length}/10 tags
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/80 backdrop-blur-sm border-grey/60">
+                  <CardHeader className="border-b border-grey/40">
+                    <CardTitle className="text-sm font-semibold tracking-tight">
+                      Mẹo nhanh
+                    </CardTitle>
+                    <CardDescription className="text-xs text-dark-grey">
+                      Một vài gợi ý để bài viết “ra form” nhanh hơn.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-5 md:px-6">
+                    <ul className="space-y-2 text-sm text-dark-grey leading-relaxed">
+                      <li>- Ảnh bìa rõ nét giúp bài viết nổi bật hơn.</li>
+                      <li>- Tiêu đề ngắn gọn, có từ khóa chính.</li>
+                      <li>- Thêm 3–5 tags liên quan để dễ tìm kiếm.</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </aside>
           </div>
         </section>
       </AnimationWrapper>

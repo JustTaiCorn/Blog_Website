@@ -50,10 +50,7 @@ const BlogPage = () => {
 
   return (
     <AnimationWrapper>
-      <div className="flex justify-center gap-8 p-10 max-lg:flex-col max-lg:px-[5vw]">
-        {/* Blog content */}
-        <div className="max-w-[800px] flex-1">
-          {/* Breadcrumb */}
+      <div className="max-w-[800px] mx-auto p-10">
           <BlogBreadcrumb
             items={[
               ...(category
@@ -67,11 +64,9 @@ const BlogPage = () => {
               { label: title },
             ]}
           />
-          {/* Title */}
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
             {title}
           </h1>
-          {/* Author Info */}
           <div className="flex items-center gap-3 my-8">
             <Avatar className="w-10 h-10">
               <AvatarImage
@@ -154,9 +149,6 @@ const BlogPage = () => {
             blog_id={blog_id!}
             totalComments={activity_total_comments}
           />
-        </div>
-
-        <aside className="w-[300px] max-lg:w-full"></aside>
       </div>
     </AnimationWrapper>
   );

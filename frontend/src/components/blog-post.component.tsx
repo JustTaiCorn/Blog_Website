@@ -11,7 +11,6 @@ const BlogPostCard = ({ content, author }: any) => {
     des,
     banner,
     activity_total_likes,
-    liked = false,
     blog_id,
   } = content;
   const { fullname, profile_img, username } = author;
@@ -38,11 +37,11 @@ const BlogPostCard = ({ content, author }: any) => {
           </span>
         </div>
 
-        <h1 className="blog-title font-medium text-2xl leading-7 line-clamp-2">
+        <h1 className="blog-title font-bold text-2xl leading-7 line-clamp-2">
           {title}
         </h1>
 
-        <p className="my-3 text-xl font-gelasio leading-7 max-sm:hidden md:max-[1100px]:hidden line-clamp-2 text-dark-grey">
+        <p className="my-3  font-gelasio leading-7 max-sm:hidden md:max-[1100px]:hidden line-clamp-2 text-dark-grey">
           {des}
         </p>
 
@@ -53,12 +52,8 @@ const BlogPostCard = ({ content, author }: any) => {
             </span>
           )}
 
-          <span
-            className={`ml-3 flex items-center gap-2 ${liked ? "text-red-500" : "text-dark-grey"}`}
-          >
-            <Heart
-              className={`w-4 h-4 ${liked ? "fill-red-500 stroke-red-500" : ""}`}
-            />{" "}
+          <span className="ml-3 flex items-center gap-2 text-dark-grey">
+            <Heart className="w-4 h-4" />
             {activity_total_likes}
           </span>
         </div>

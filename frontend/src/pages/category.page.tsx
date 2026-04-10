@@ -43,22 +43,15 @@ export default function CategoryPage() {
           <span className="text-sm font-medium">{categoryName}</span>
         </div>
 
-        {/* Header */}
         <h1 className="text-3xl font-bold mb-2">{categoryName}</h1>
         <p className="text-dark-grey mb-6">
           Tất cả bài viết trong danh mục{" "}
           <span className="font-medium text-black">{categoryName}</span>
-          {data && (
-            <span className="ml-1">({data.pages[0]?.total ?? 0} bài viết)</span>
-          )}
         </p>
 
-        {/* Filter Bar (no category since we're already in one) */}
-        <div className="border-b border-grey pb-4 mb-6">
+        <div className="border-b border-grey pb-4 mb-6 flex justify-end">
           <BlogFilterBar filters={filters} onFilterChange={setFilters} />
         </div>
-
-        {/* Blog List */}
         {data?.pages[0].blogs.length ? (
           <>
             {data.pages.map((page: any, i: number) => (

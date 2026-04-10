@@ -17,12 +17,7 @@ export interface BlogFilterParams {
   sort?: "asc" | "desc";
   sortBy?: "date" | "views" | "likes";
   category?: string;
-  dateFrom?: string;
-  dateTo?: string;
 }
-
-// ==================== Blog Query Hooks ====================
-
 export const useFetchBlogs = (filters: BlogFilterParams = {}) => {
   return useInfiniteQuery({
     queryKey: ["blogs", filters],
@@ -33,8 +28,6 @@ export const useFetchBlogs = (filters: BlogFilterParams = {}) => {
         sort: filters.sort ?? "desc",
         sortBy: filters.sortBy,
         category: filters.category,
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
       }),
     getNextPageParam: (lastPage) => {
       return lastPage.page < lastPage.totalPages

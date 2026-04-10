@@ -15,6 +15,7 @@ import BlogFilterBar from "@/components/blog-filter-bar.component";
 import { Button } from "@/components/ui/button";
 import { getDay } from "@/common/date";
 
+
 export default function HomePage() {
   const [filters, setFilters] = useState<BlogFilterParams>({});
 
@@ -35,13 +36,13 @@ export default function HomePage() {
         {/* Feed Section */}
         <div className="w-full">
           <div className="mb-6 border-b border-grey pb-4 mt-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <h1 className="font-medium text-xl">Home</h1>
+              <BlogFilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+              />
             </div>
-            <BlogFilterBar
-              filters={filters}
-              onFilterChange={handleFilterChange}
-            />
           </div>
           {isLoading ? (
             <Loader />

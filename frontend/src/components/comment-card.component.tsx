@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { MessageSquare, Trash2, ThumbsUp, ThumbsDown } from "lucide-react";
+import { MessageSquare, Trash2, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
   useAddReply,
@@ -62,87 +62,86 @@ const CommentCard = ({
   const visibleReplies = showAllReplies ? replies : replies.slice(0, 2);
 
   return (
-    <div className={`${isReply ? "ml-12 mt-3" : ""}`}>
-      <div className="flex gap-3 group">
+    <div className={`py-5 ${isReply ? "border-none py-3" : ""}`}>
+      <div className="flex gap-3">
         {/* Avatar */}
-        <Avatar className="w-9 h-9 flex-shrink-0 mt-0.5">
+        <Avatar className="w-8 h-8 shrink-0 mt-0.5">
           <AvatarImage
             src={comment.commenter?.profile_img || ""}
-            className="rounded-full object-cover w-9 h-9"
+            className="rounded-full object-cover w-8 h-8"
           />
-          <AvatarFallback className="w-9 h-9 rounded-full bg-grey flex items-center justify-center text-sm font-medium">
+          <AvatarFallback className="w-8 h-8 rounded-full bg-grey flex items-center justify-center text-sm font-medium">
             {comment.commenter?.fullname?.charAt(0)}
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {/* Header */}
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="font-medium text-sm capitalize">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+            <span className="font-medium text-sm capitalize leading-none">
               {comment.commenter?.fullname}
             </span>
-            <span className="text-xs text-dark-grey">
+            <span className="text-xs text-dark-grey leading-none">
               @{comment.commenter?.username}
             </span>
-            <span className="text-xs text-dark-grey">·</span>
-            <span className="text-xs text-dark-grey">
+            <span className="text-xs text-dark-grey/50 leading-none">·</span>
+            <span className="text-xs text-dark-grey leading-none">
               {getDay(comment.commented_at)}
             </span>
           </div>
 
           {/* Comment text */}
-          <p className="text-sm text-black leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap text-black/90">
             {comment.comment}
           </p>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 mt-2">
-            {/* Like / Dislike */}
+          <div className="flex items-center gap-1 mt-2.5">
+            {/* Like */}
             <button
               disabled={isVoting}
               onClick={() => {
                 if (!user) return;
                 toggleLike({ comment_id: comment.id, type: "UP" });
               }}
-              className={`flex items-center gap-1 text-xs transition-colors ${
-                comment.user_vote === "UP"
-                  ? "text-blue-500 font-medium"
-                  : "text-dark-grey hover:text-blue-500"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
               title={user ? "Thích" : "Đăng nhập để thích"}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
+                comment.user_vote === "UP"
+                  ? "text-blue-600 bg-blue-50 font-medium"
+                  : "text-dark-grey hover:bg-grey/40"
+              } ${!user ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <ThumbsUp className="w-3.5 h-3.5" />
               {comment.total_likes > 0 && <span>{comment.total_likes}</span>}
             </button>
 
+            {/* Dislike */}
             <button
               disabled={isVoting}
               onClick={() => {
                 if (!user) return;
                 toggleLike({ comment_id: comment.id, type: "DOWN" });
               }}
-              className={`flex items-center gap-1 text-xs transition-colors ${
-                comment.user_vote === "DOWN"
-                  ? "text-red-500 font-medium"
-                  : "text-dark-grey hover:text-red-500"
-              } ${!user ? "opacity-50 cursor-not-allowed" : ""}`}
               title={user ? "Không thích" : "Đăng nhập để vote"}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-colors ${
+                comment.user_vote === "DOWN"
+                  ? "text-red-500 bg-red-50 font-medium"
+                  : "text-dark-grey hover:bg-grey/40"
+              } ${!user ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <ThumbsDown className="w-3.5 h-3.5" />
-              {comment.total_dislikes > 0 && (
-                <span>{comment.total_dislikes}</span>
-              )}
+              {comment.total_dislikes > 0 && <span>{comment.total_dislikes}</span>}
             </button>
 
             {!isReply && (
               <button
                 onClick={() => setShowReplyField((v) => !v)}
-                className="flex items-center gap-1.5 text-xs text-dark-grey hover:text-black transition-colors"
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-dark-grey hover:bg-grey/40 transition-colors"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 Trả lời
                 {replies.length > 0 && (
-                  <span className="text-dark-grey">({replies.length})</span>
+                  <span className="text-dark-grey/70">({replies.length})</span>
                 )}
               </button>
             )}
@@ -151,7 +150,7 @@ const CommentCard = ({
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex items-center gap-1 text-xs text-red-500 transition-colors hover:text-red-600 hover:scale-105"
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-dark-grey hover:bg-red-50 hover:text-red-500 transition-colors ml-auto"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Xóa
@@ -161,7 +160,7 @@ const CommentCard = ({
 
           {/* Reply field */}
           {showReplyField && user && (
-            <div className="mt-3">
+            <div className="mt-4">
               <CommentField
                 onSubmit={handleReply}
                 isLoading={isAddingReply}
@@ -176,7 +175,7 @@ const CommentCard = ({
 
       {/* Nested replies */}
       {!isReply && replies.length > 0 && (
-        <div className="mt-2">
+        <div className="ml-11 mt-1 pl-4 border-l-2 border-grey/40">
           {visibleReplies.map((reply: any) => (
             <CommentCard
               key={reply.id}
@@ -188,11 +187,19 @@ const CommentCard = ({
           {replies.length > 2 && (
             <button
               onClick={() => setShowAllReplies((v) => !v)}
-              className="ml-12 mt-2 text-xs text-dark-grey hover:text-black transition-colors"
+              className="flex items-center gap-1 mt-1 text-xs text-dark-grey hover:text-black transition-colors"
             >
-              {showAllReplies
-                ? "Ẩn bớt"
-                : `Xem thêm ${replies.length - 2} phản hồi`}
+              {showAllReplies ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  Ẩn bớt
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  Xem thêm {replies.length - 2} phản hồi
+                </>
+              )}
             </button>
           )}
         </div>
