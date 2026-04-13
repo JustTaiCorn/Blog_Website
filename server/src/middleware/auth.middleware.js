@@ -35,7 +35,7 @@ export const protectedRoute = async (req, res, next) => {
           created_at: true,
           roles: {
             select: {
-              role: true,
+              role: { select: { name: true } },
             },
           },
         },
@@ -45,7 +45,10 @@ export const protectedRoute = async (req, res, next) => {
         return res.status(404).json({ message: "Người dùng không tồn tại." });
       }
 
-      req.user = user;
+      req.user = {
+        ...user,
+        roles: user.roles.map((ur) => ({ role: ur.role.name })),
+      };
       next();
     });
   } catch (error) {
@@ -85,14 +88,17 @@ export const optionalAuth = async (req, res, next) => {
           created_at: true,
           roles: {
             select: {
-              role: true,
+              role: { select: { name: true } },
             },
           },
         },
       });
 
       if (user) {
-        req.user = user;
+        req.user = {
+          ...user,
+          roles: user.roles.map((ur) => ({ role: ur.role.name })),
+        };
       }
 
       next();

@@ -4,6 +4,11 @@ import { userService } from "@/services/userService";
 import { authWithGoogle } from "@/common/firebase";
 import { toast } from "react-toastify";
 import type { User } from "@/types/entities";
+import type { Permission } from "@/permissions/permissions";
+import {
+  hasPermission as checkPermission,
+  hasRole as checkRole,
+} from "@/permissions/ability";
 
 interface AuthState {
   accessToken: string | null;
@@ -23,6 +28,8 @@ interface AuthState {
   fetchMe: () => Promise<void>;
   refresh: () => Promise<void>;
   isAdmin: () => boolean;
+  hasRole: (role: string) => boolean;
+  hasPermission: (permission: Permission) => boolean;
   updateProfile: (data: FormData) => Promise<boolean>;
   setUser: (user: User) => void;
 }
@@ -145,7 +152,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAdmin: () => {
     const { user } = get();
     if (!user || !user.roles) return false;
-    return user.roles.some((r) => r.role === "ADMIN");
+    return user.roles.some((r) => r.role === "ADMIN" || r.role === "OWNER");
+  },
+
+  hasRole: (role: string) => {
+    const { user } = get();
+    return checkRole(user, role);
+  },
+
+  hasPermission: (permission: Permission) => {
+    const { user } = get();
+    return checkPermission(user, permission);
   },
 
   updateProfile: async (data: FormData) => {

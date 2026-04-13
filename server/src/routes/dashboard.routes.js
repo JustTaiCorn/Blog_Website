@@ -3,7 +3,7 @@ import {
   getDashboardStats,
   getNewUsersLast7Days,
   getBlogsByCategory,
-} from "../../controllers/admin/dashboard.controller.js";
+} from "../controllers/admin/dashboard.controller.js";
 
 const router = express.Router();
 

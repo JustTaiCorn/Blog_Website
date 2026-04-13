@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma.js";
 import CustomError from "../../config/Custom-error.js";
 
 export const getAllUsers = async () => {
-  return prisma.user.findMany({
+  const users = await prisma.user.findMany({
     select: {
       id: true,
       username: true,
@@ -12,7 +12,7 @@ export const getAllUsers = async () => {
       created_at: true,
       roles: {
         select: {
-          role: true,
+          role: { select: { name: true } },
         },
       },
     },
@@ -20,6 +20,11 @@ export const getAllUsers = async () => {
       created_at: "desc",
     },
   });
+
+  return users.map((user) => ({
+    ...user,
+    roles: user.roles.map((ur) => ({ role: ur.role.name })),
+  }));
 };
 
 export const updateUserRole = async (userId, role, action) => {
@@ -27,29 +32,36 @@ export const updateUserRole = async (userId, role, action) => {
     throw new CustomError(400, "Role không hợp lệ");
   }
 
+  const roleRecord = await prisma.role.findUnique({ where: { name: role } });
+  if (!roleRecord) {
+    throw new CustomError(400, "Role không tồn tại trong hệ thống");
+  }
+
+  const uid = parseInt(userId);
+
   if (action === "add") {
-    await prisma.userRoleEntry.upsert({
+    await prisma.userRole.upsert({
       where: {
-        user_id_role: {
-          user_id: parseInt(userId),
-          role: role,
+        user_id_role_id: {
+          user_id: uid,
+          role_id: roleRecord.id,
         },
       },
       update: {},
       create: {
-        user_id: parseInt(userId),
-        role: role,
+        user_id: uid,
+        role_id: roleRecord.id,
       },
     });
   } else {
     if (role === "USER") {
       throw new CustomError(400, "Không thể xóa quyền USER");
     }
-    await prisma.userRoleEntry.delete({
+    await prisma.userRole.delete({
       where: {
-        user_id_role: {
-          user_id: parseInt(userId),
-          role: role,
+        user_id_role_id: {
+          user_id: uid,
+          role_id: roleRecord.id,
         },
       },
     });
@@ -60,7 +72,7 @@ export const deleteUser = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: parseInt(userId) },
     include: {
-      roles: true,
+      roles: { include: { role: true } },
     },
   });
 
@@ -68,7 +80,7 @@ export const deleteUser = async (userId) => {
     throw new CustomError(404, "Không tìm thấy người dùng");
   }
 
-  const isOwner = user.roles.some((r) => r.role === "OWNER");
+  const isOwner = user.roles.some((r) => r.role.name === "OWNER");
   if (isOwner) {
     throw new CustomError(403, "Không thể xóa tài khoản OWNER");
   }

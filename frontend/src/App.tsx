@@ -19,7 +19,9 @@ import SearchPage from "@/pages/search.page";
 import CategoryPage from "@/pages/category.page";
 import NotificationPage from "@/pages/notification.page";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
+import RoleGuard from "@/components/guards/RoleGuard.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
+import { UserRole } from "@/types/entities";
 
 // Admin Pages
 import DashboardOverview from "@/pages/admin/DashboardOverview.tsx";
@@ -79,9 +81,7 @@ function App() {
           <Route path="/settings/profile" element={<ProfilePage />} />
           <Route path="/notifications" element={<NotificationPage />} />
         </Route>
-
-        {/* Admin Routes */}
-        <Route element={<AdminRoute />}>
+        <Route element={<RoleGuard roles={[UserRole.ADMIN, UserRole.OWNER]} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<DashboardOverview />} />
             <Route path="/admin/users" element={<UserManagement />} />

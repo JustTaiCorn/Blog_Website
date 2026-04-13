@@ -8,13 +8,7 @@ import logger from "morgan";
 import dotenv from "dotenv";
 import cors from "cors";
 import Debug from "debug";
-import { protectedRoute } from "./middleware/auth.middleware.js";
-import authRouter from "./routes/auth.routes.js";
-import userRouter from "./routes/user.routes.js";
-import blogRouter from "./routes/blog.routes.js";
-import adminRouter from "./routes/admin/index.js";
-import interactionRouter from "./routes/interaction.routes.js";
-import notificationRouter from "./routes/notification.routes.js";
+import apiRouter from "./routes/index.js";
 import errorHandler from "./config/errorHandler.js";
 import { initSocket } from "./lib/socket.js";
 import admin from "firebase-admin";
@@ -109,12 +103,7 @@ app.use(
 );
 app.use(express.static(path.join(__dirname, "../public")));
 
-app.use("/api/auth", authRouter);
-app.use("/api/users", protectedRoute, userRouter);
-app.use("/api/blogs", blogRouter);
-app.use("/api/blogs/:blog_id", interactionRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/notifications", protectedRoute, notificationRouter);
+app.use("/api", apiRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({ error: "Not Found" });

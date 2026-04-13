@@ -72,7 +72,6 @@ export const updateUserProfile = async (userId, data, file) => {
   await prisma.user.update({
     where: { id: userId },
     data: updateData,
-    include: { roles: true },
   });
 };
 
