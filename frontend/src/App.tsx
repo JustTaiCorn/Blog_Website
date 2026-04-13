@@ -17,6 +17,7 @@ import ProfilePage from "@/pages/profile.page";
 import MyBlogsPage from "@/pages/my-blogs.page";
 import SearchPage from "@/pages/search.page";
 import CategoryPage from "@/pages/category.page";
+import NotificationPage from "@/pages/notification.page";
 import AdminRoute from "@/components/auth/AdminRoute.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
 
@@ -37,9 +38,12 @@ import CommentManagement from "@/pages/admin/CommentManagement.tsx";
 // import ManageBlogsPage from "./pages/manage-blogs.page";
 // import NotificationsPage from "./pages/notifications.page";
 // import NotFoundPage from "./pages/404.page";
+import { useSocketNotification } from "@/hooks/useSocketNotification";
 
 // Layout với Navbar
 const MainLayout = () => {
+  useSocketNotification();
+
   return (
     <>
       <Navbar />
@@ -73,6 +77,7 @@ function App() {
           <Route path="/editor/:blog_id" element={<EditorPages />} />
           <Route path="/my-blogs" element={<MyBlogsPage />} />
           <Route path="/settings/profile" element={<ProfilePage />} />
+          <Route path="/notifications" element={<NotificationPage />} />
         </Route>
 
         {/* Admin Routes */}

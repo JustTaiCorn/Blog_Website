@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -13,7 +14,9 @@ import userRouter from "./routes/user.routes.js";
 import blogRouter from "./routes/blog.routes.js";
 import adminRouter from "./routes/admin/index.js";
 import interactionRouter from "./routes/interaction.routes.js";
+import notificationRouter from "./routes/notification.routes.js";
 import errorHandler from "./config/errorHandler.js";
+import { initSocket } from "./lib/socket.js";
 import admin from "firebase-admin";
 dotenv.config();
 
@@ -111,6 +114,7 @@ app.use("/api/users", protectedRoute, userRouter);
 app.use("/api/blogs", blogRouter);
 app.use("/api/blogs/:blog_id", interactionRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/notifications", protectedRoute, notificationRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({ error: "Not Found" });
@@ -118,6 +122,9 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server, allowedOrigins);
+
+server.listen(PORT, () => {
   console.log(`Server đang chạy trên cổng ${PORT}`);
 });

@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { deleteCache } from "../lib/redis.js";
+import { emitToUser } from "../lib/socket.js";
 import CustomError from "../config/Custom-error.js";
 
 export const getLikeStatus = async (blogId, userId) => {
@@ -80,6 +81,31 @@ export const toggleLike = async (blogId, userId) => {
           ]
         : []),
     ]);
+
+    if (blog.author_id !== userId) {
+      const [actor, blogInfo] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            username: true,
+            fullname: true,
+            profile_img: true,
+          },
+        }),
+        prisma.blog.findUnique({
+          where: { id: blog.id },
+          select: { blog_id: true, title: true, slug: true },
+        }),
+      ]);
+
+      emitToUser(blog.author_id, "notification:new", {
+        type: "like",
+        actor,
+        blog: blogInfo,
+        created_at: new Date().toISOString(),
+      });
+    }
 
     await deleteCache(`blogs:detail:${blogId}`);
     return { liked: true, message: "Đã thích" };
@@ -216,6 +242,21 @@ export const addComment = async (blogId, commentText, userId) => {
     return created;
   });
 
+  if (blog.author_id !== userId) {
+    const blogInfo = await prisma.blog.findUnique({
+      where: { id: blog.id },
+      select: { blog_id: true, title: true, slug: true },
+    });
+
+    emitToUser(blog.author_id, "notification:new", {
+      type: "comment",
+      actor: newComment.commenter,
+      blog: blogInfo,
+      comment: { id: newComment.id, comment: newComment.comment },
+      created_at: new Date().toISOString(),
+    });
+  }
+
   return newComment;
 };
 
@@ -279,6 +320,20 @@ export const addReply = async (blogId, commentId, replyText, userId) => {
 
     return created;
   });
+  if (parentComment.commented_by !== userId) {
+    const blogInfo = await prisma.blog.findUnique({
+      where: { id: blog.id },
+      select: { blog_id: true, title: true, slug: true },
+    });
+
+    emitToUser(parentComment.commented_by, "notification:new", {
+      type: "reply",
+      actor: newReply.commenter,
+      blog: blogInfo,
+      reply: { id: newReply.id, comment: newReply.comment },
+      created_at: new Date().toISOString(),
+    });
+  }
 
   return newReply;
 };
