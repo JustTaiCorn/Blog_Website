@@ -120,3 +120,52 @@ export const updateUserSocialLinks = async (userId, links) => {
     },
   });
 };
+
+export const getPublicProfile = async (username, currentUserId = null) => {
+  const user = await prisma.user.findFirst({
+    where: { username, deleted: false },
+    select: {
+      id: true,
+      username: true,
+      fullname: true,
+      bio: true,
+      profile_img: true,
+      total_posts: true,
+      created_at: true,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError(404, "Không tìm thấy người dùng");
+  }
+
+  const [followers_count, following_count, is_following] = await Promise.all([
+    prisma.follow.count({ where: { following_id: user.id } }),
+    prisma.follow.count({ where: { follower_id: user.id } }),
+    currentUserId
+      ? prisma.follow
+          .findUnique({
+            where: {
+              follower_id_following_id: {
+                follower_id: currentUserId,
+                following_id: user.id,
+              },
+            },
+          })
+          .then((f) => !!f)
+      : Promise.resolve(false),
+  ]);
+
+  return {
+    id: user.id,
+    username: user.username,
+    fullname: user.fullname,
+    bio: user.bio,
+    profile_img: user.profile_img,
+    total_posts: user.total_posts,
+    created_at: user.created_at,
+    followers_count,
+    following_count,
+    is_following,
+  };
+};

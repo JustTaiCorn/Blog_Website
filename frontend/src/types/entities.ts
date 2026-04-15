@@ -22,6 +22,7 @@ export const NotificationType = {
   like: "like",
   comment: "comment",
   reply: "reply",
+  follow: "follow",
 } as const;
 
 export type NotificationType =
@@ -141,4 +142,23 @@ export interface Notification {
   seen: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface Follow {
+  follower_id: number;
+  following_id: number;
+  created_at: string;
+}
+
+export interface PublicProfile {
+  id: number;
+  username: string;
+  fullname: string;
+  bio: string;
+  profile_img: string | null;
+  total_posts: number;
+  created_at: string;
+  followers_count: number;
+  following_count: number;
+  is_following: boolean;
 }

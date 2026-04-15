@@ -26,7 +26,7 @@ export interface NotificationItem {
   reply_id: number | null;
   replied_on_comment_id: number | null;
   actor: NotificationActor;
-  blog: NotificationBlog;
+  blog: NotificationBlog | null;
   comment?: { id: number; comment: string } | null;
   reply?: { id: number; comment: string } | null;
 }
@@ -47,7 +47,7 @@ export interface UnreadCountResponse {
 export interface NotificationNewPayload {
   type: NotificationType;
   actor: NotificationActor;
-  blog: NotificationBlog;
+  blog?: NotificationBlog | null;
   comment?: { id: number; comment: string };
   reply?: { id: number; comment: string };
   created_at: string;

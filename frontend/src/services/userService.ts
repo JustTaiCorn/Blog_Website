@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import type { User, UserSocialLinks } from "@/types/entities";
+import type { User, UserSocialLinks, PublicProfile } from "@/types/entities";
 
 interface UpdateProfileResponse {
   message: string;
@@ -43,6 +43,15 @@ export const userService = {
     const res = await api.put<UpdateSocialLinksResponse>(
       "/users/social-links",
       links,
+    );
+    return res.data;
+  },
+
+  getPublicProfile: async (
+    username: string,
+  ): Promise<{ user: PublicProfile }> => {
+    const res = await api.get<{ user: PublicProfile }>(
+      `/users/profile/${username}`,
     );
     return res.data;
   },

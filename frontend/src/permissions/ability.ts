@@ -33,13 +33,6 @@ const ROLE_PERMISSION_MAP: Record<string, Permission[]> = {
   [UserRole.ADMIN]: ADMIN_PERMISSIONS,
   [UserRole.OWNER]: OWNER_PERMISSIONS,
 };
-
-// ==================== Helpers ====================
-
-/**
- * Tính toán tập hợp tất cả permissions từ danh sách roles của user.
- * Nếu user có nhiều role (ví dụ vừa USER vừa ADMIN), lấy hợp (union).
- */
 export function getUserPermissions(roles: UserRoleEntry[]): Permission[] {
   const permissionSet = new Set<Permission>();
   for (const entry of roles) {
@@ -51,10 +44,6 @@ export function getUserPermissions(roles: UserRoleEntry[]): Permission[] {
   return Array.from(permissionSet);
 }
 
-/**
- * Kiểm tra user có permission cụ thể hay không.
- * User chưa đăng nhập (null) luôn trả về false.
- */
 export function hasPermission(
   user: User | null,
   permission: Permission,
@@ -64,9 +53,6 @@ export function hasPermission(
   return permissions.includes(permission);
 }
 
-/**
- * Kiểm tra user có role cụ thể hay không.
- */
 export function hasRole(user: User | null, role: string): boolean {
   if (!user || !user.roles) return false;
   return user.roles.some((r) => r.role === role);

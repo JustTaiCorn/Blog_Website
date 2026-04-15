@@ -197,18 +197,17 @@ export const getAllPublishedBlogs = async (query, user) => {
   const take = parseInt(limit);
   const orderDirection = sort === "asc" ? "asc" : "desc";
 
-  // Build where clause
   const where = {
     draft: false,
     published: true,
   };
-
-  // Filter by category slug
   if (category) {
     where.category = { slug: category };
   }
+  if (query.author) {
+    where.author = { username: query.author };
+  }
 
-  // Filter by date range using date-fns
   if (dateFrom || dateTo) {
     where.published_at = {};
     if (dateFrom) {

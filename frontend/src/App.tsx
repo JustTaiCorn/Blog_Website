@@ -18,12 +18,11 @@ import MyBlogsPage from "@/pages/my-blogs.page";
 import SearchPage from "@/pages/search.page";
 import CategoryPage from "@/pages/category.page";
 import NotificationPage from "@/pages/notification.page";
-import AdminRoute from "@/components/auth/AdminRoute.tsx";
+import UserBioPage from "@/pages/user-bio.page";
 import RoleGuard from "@/components/guards/RoleGuard.tsx";
 import AdminLayout from "@/components/layouts/AdminLayout.tsx";
 import { UserRole } from "@/types/entities";
 
-// Admin Pages
 import DashboardOverview from "@/pages/admin/DashboardOverview.tsx";
 import UserManagement from "@/pages/admin/UserManagement.tsx";
 import CategoryManagement from "@/pages/admin/CategoryManagement.tsx";
@@ -67,8 +66,8 @@ function App() {
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
 
-      {/* Routes với Navbar */}
       <Route element={<MainLayout />}>
+        <Route path="/:username" element={<UserBioPage />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/category/:slug" element={<CategoryPage />} />
@@ -91,7 +90,6 @@ function App() {
             <Route path="/admin/comments" element={<CommentManagement />} />
           </Route>
         </Route>
-        {/*  <Route path="*" element={<NotFoundPage />} />*/}
       </Route>
     </Routes>
   );
