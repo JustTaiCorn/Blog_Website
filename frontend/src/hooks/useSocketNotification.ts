@@ -5,23 +5,13 @@ import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import { useUnreadCount } from "@/hooks/useNotification";
 import type { NotificationNewPayload } from "@/types/notification";
 
-/**
- * Top-level hook that manages Socket.io connection lifecycle
- * and listens for realtime notification events.
- *
- * Mount this once in App.tsx or MainLayout.
- */
 export const useSocketNotification = () => {
   const { accessToken, user } = useAuthStore();
   const { increment } = useNotificationStore();
   const connectedRef = useRef(false);
-
-  // Fetch initial unread count when authenticated
   useUnreadCount();
-
   useEffect(() => {
     if (!accessToken || !user) {
-      // Not authenticated — disconnect if connected
       if (connectedRef.current) {
         disconnectSocket();
         connectedRef.current = false;
@@ -48,7 +38,6 @@ export const useSocketNotification = () => {
     };
   }, [accessToken, user]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       disconnectSocket();
