@@ -3,6 +3,7 @@ import {
   updateUserProfile,
   getUserSocialLinks,
   updateUserSocialLinks,
+  getPublicProfile,
 } from "../services/user.service.js";
 import CustomError from "../config/Custom-error.js";
 
@@ -53,6 +54,16 @@ export const updateSocialLinks = async (req, res, next) => {
     return res.status(200).json({
       message: "Cập nhật liên kết xã hội thành công!",
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPublicProfileCtrl = async (req, res, next) => {
+  try {
+    const currentUserId = req.user?.id || null;
+    const profile = await getPublicProfile(req.params.username, currentUserId);
+    return res.status(200).json({ user: profile });
   } catch (error) {
     next(error);
   }

@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Reply } from "lucide-react";
+import { Heart, MessageCircle, Reply, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { useMarkAsRead } from "@/hooks/useNotification";
@@ -29,6 +29,12 @@ const typeConfig = {
     bgColor: "bg-emerald-50",
     message: "đã phản hồi bình luận của bạn",
   },
+  follow: {
+    icon: UserPlus,
+    color: "text-violet-500",
+    bgColor: "bg-violet-50",
+    message: "đã follow bạn",
+  },
 };
 
 interface NotificationItemProps {
@@ -45,7 +51,11 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
     if (!notification.seen) {
       markAsRead.mutate(notification.id);
     }
-    navigate(`/blog/${notification.blog.blog_id}`);
+    if (notification.type === "follow") {
+      navigate(`/@${notification.actor.username}`);
+    } else if (notification.blog) {
+      navigate(`/blog/${notification.blog.blog_id}`);
+    }
   };
 
   return (
@@ -84,7 +94,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
           {config.message}
         </p>
         <p className="text-sm text-gray-500 truncate mt-0.5">
-          "{notification.blog.title}"
+          {notification.blog ? `"${notification.blog.title}"` : ""}
         </p>
         <p className="text-xs text-gray-400 mt-1">
           {dayjs(notification.created_at).fromNow()}
