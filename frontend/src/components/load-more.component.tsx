@@ -1,13 +1,24 @@
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+
 const LoadMoreBtn = ({ hasNextPage, fetchDataFun, isFetching }: any) => {
   if (hasNextPage) {
     return (
-      <button
+      <Button
+        variant="ghost"
         onClick={() => fetchDataFun()}
         disabled={isFetching}
-        className="text-dark-grey p-2 px-3 hover:bg-grey/30 rounded-md flex items-center gap-2 mx-auto mt-4"
+        className="flex items-center gap-2 mx-auto mt-4 text-dark-grey"
       >
-        {isFetching ? "Loading..." : "Load More"}
-      </button>
+        {isFetching ? (
+          <>
+            <Spinner className="w-4 h-4" />
+            Loading...
+          </>
+        ) : (
+          "Load More"
+        )}
+      </Button>
     );
   }
   return null;

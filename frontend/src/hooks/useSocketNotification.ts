@@ -19,11 +19,8 @@ export const useSocketNotification = () => {
       return;
     }
 
-    // Connect socket
     const socket = connectSocket(accessToken);
     connectedRef.current = true;
-
-    // Listen for new notifications
     const handleNewNotification = (_data: NotificationNewPayload) => {
       increment();
     };

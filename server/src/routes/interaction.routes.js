@@ -7,7 +7,6 @@ import {
   addComment,
   addReply,
   deleteComment,
-  getCommentLikeStatus,
   toggleCommentLike,
 } from "../controllers/interaction.controller.js";
 
@@ -24,7 +23,6 @@ router.post("/comments/:comment_id/replies", protectedRoute, addReply);
 router.delete("/comments/:comment_id", protectedRoute, deleteComment);
 
 // Comment Likes
-router.get("/comments/:comment_id/like", optionalAuth, getCommentLikeStatus);
 router.post("/comments/:comment_id/like", protectedRoute, toggleCommentLike);
 
 export default router;

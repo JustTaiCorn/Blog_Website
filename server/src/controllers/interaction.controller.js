@@ -5,7 +5,6 @@ import {
   addComment as addCommentService,
   addReply as addReplyService,
   deleteComment as deleteCommentService,
-  getCommentLikeStatus as getCommentLikeStatusService,
   toggleCommentLike as toggleCommentLikeService,
 } from "../services/interaction.service.js";
 import CustomError from "../config/Custom-error.js";
@@ -96,17 +95,6 @@ export const deleteComment = async (req, res, next) => {
   }
 };
 
-export const getCommentLikeStatus = async (req, res, next) => {
-  try {
-    const result = await getCommentLikeStatusService(
-      req.params.comment_id,
-      req.user?.id,
-    );
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const toggleCommentLike = async (req, res, next) => {
   try {

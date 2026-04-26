@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare, Trash2, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
@@ -65,12 +65,11 @@ const CommentCard = ({
     <div className={`py-5 ${isReply ? "border-none py-3" : ""}`}>
       <div className="flex gap-3">
         {/* Avatar */}
-        <Avatar className="w-8 h-8 shrink-0 mt-0.5">
+        <Avatar className="size-8 shrink-0 mt-0.5">
           <AvatarImage
             src={comment.commenter?.profile_img || ""}
-            className="rounded-full object-cover w-8 h-8"
           />
-          <AvatarFallback className="w-8 h-8 rounded-full bg-grey flex items-center justify-center text-sm font-medium">
+          <AvatarFallback className="text-sm font-medium">
             {comment.commenter?.fullname?.charAt(0)}
           </AvatarFallback>
         </Avatar>

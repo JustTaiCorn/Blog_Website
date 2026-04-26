@@ -13,6 +13,8 @@ import NoDataMessage from "@/components/nodata.component";
 import LoadMoreBtn from "@/components/load-more.component";
 import BlogFilterBar from "@/components/blog-filter-bar.component";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { getDay } from "@/common/date";
 
 
@@ -35,7 +37,7 @@ export default function HomePage() {
       <section className="h-cover flex justify-center gap-10 px-5 max-w-[1200px] mx-auto">
         {/* Feed Section */}
         <div className="w-full">
-          <div className="mb-6 border-b border-grey pb-4 mt-5">
+          <div className="mb-6 pb-4 mt-5">
             <div className="flex items-center justify-between">
               <h1 className="font-medium text-xl">Home</h1>
               <BlogFilterBar
@@ -43,6 +45,7 @@ export default function HomePage() {
                 onFilterChange={handleFilterChange}
               />
             </div>
+            <Separator className="mt-4" />
           </div>
           {isLoading ? (
             <Loader />
@@ -108,11 +111,12 @@ export default function HomePage() {
                       </span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <img
-                            src={blog.author?.profile_img}
-                            alt=""
-                            className="w-5 h-5 rounded-full"
-                          />
+                          <Avatar className="size-5">
+                            <AvatarImage src={blog.author?.profile_img} />
+                            <AvatarFallback className="text-[10px]">
+                              {blog.author?.fullname?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
                           <p className="text-sm text-dark-grey line-clamp-1">
                             {blog.author?.fullname}
                           </p>

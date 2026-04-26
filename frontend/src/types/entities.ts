@@ -123,13 +123,6 @@ export interface BlogLike {
   created_at: string;
 }
 
-export interface CommentLike {
-  user_id: number;
-  comment_id: number;
-  type: LikeType;
-  created_at: string;
-}
-
 export interface Notification {
   id: number;
   type: NotificationType;

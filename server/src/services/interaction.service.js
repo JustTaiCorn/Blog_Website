@@ -396,23 +396,6 @@ export const deleteComment = async (blogId, commentId, userId, isAdmin) => {
   });
 };
 
-export const getCommentLikeStatus = async (commentId, userId) => {
-  const likes = await prisma.commentLike.findMany({
-    where: { comment_id: parseInt(commentId) },
-    select: { user_id: true, type: true },
-  });
-
-  const total_likes = likes.filter((l) => l.type === "UP").length;
-  const total_dislikes = likes.filter((l) => l.type === "DOWN").length;
-  const userLike = userId ? likes.find((l) => l.user_id === userId) : null;
-
-  return {
-    total_likes,
-    total_dislikes,
-    user_vote: userLike ? userLike.type : null,
-  };
-};
-
 export const toggleCommentLike = async (commentId, userId, type = "UP") => {
   const existing = await prisma.commentLike.findUnique({
     where: {

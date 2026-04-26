@@ -1,7 +1,8 @@
 import { getDay } from "@/common/date";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 const BlogPostCard = ({ content, author }: any) => {
   const {
@@ -22,11 +23,8 @@ const BlogPostCard = ({ content, author }: any) => {
     >
       <div className="w-full">
         <div className="flex gap-2 items-center mb-4">
-          <Avatar>
-            <AvatarImage
-              src={profile_img}
-              className="size-10 rounded-full border border-grey"
-            />
+          <Avatar className="size-10 border border-grey">
+            <AvatarImage src={profile_img} />
             <AvatarFallback>{fullname.charAt(0)}</AvatarFallback>
           </Avatar>
           <p className="line-clamp-1 mb-0 font-bold">
@@ -47,9 +45,9 @@ const BlogPostCard = ({ content, author }: any) => {
 
         <div className="flex gap-4 mt-5">
           {tags.length > 0 && (
-            <span className="bg-blue-100 text-blue-700 py-1 px-4 rounded-full">
+            <Badge variant="secondary" className="py-1 px-4 rounded-full bg-blue-100 text-blue-700 border-transparent">
               {tags[0].tag.name}
-            </span>
+            </Badge>
           )}
 
           <span className="ml-3 flex items-center gap-2 text-dark-grey">
